@@ -1,0 +1,7 @@
+{
+  "name": "counsellor-frontend",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
