@@ -1,0 +1,409 @@
+/* General Styling & Variables */
+:root {
+  --ion-color-primary: #33CEA4; /* A vibrant blue for primary actions and accents */
+  --ion-color-primary-rgb: 82, 103, 255;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #33CEA4;
+  --ion-color-primary-tint: #33CEA4;
+
+  --ion-color-secondary: #6dc036; /* A fresh green for success/active states */
+  --ion-color-secondary-rgb: 109, 192, 54;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-shade: #60a930;
+  --ion-color-secondary-tint: #7ccd4a;
+
+  --ion-color-tertiary: #f53d3d; /* Red for danger/inactive states */
+  --ion-color-tertiary-rgb: 245, 61, 61;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-shade: #d83636;
+  --ion-color-tertiary-tint: #f65050;
+
+  --ion-color-medium: #92949c;
+  --ion-color-dark: #222428;
+  --ion-color-light: #ffffff;
+
+  --background: #f0f2f5; /* Lighter, more modern background */
+}
+
+ion-content {
+  --background:  #ffffff;
+}
+
+/* --- Welcome Section --- */
+.welcome-section {
+  text-align: center;
+  padding: 30px 20px; /* More padding */
+  background: linear-gradient(135deg, #33CEA4 0%, #fc5c7d 100%); /* More dynamic gradient */
+  border-radius: 25px; /* Softer corners */
+  margin-bottom: 30px; /* More space below */
+  color: white;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); /* More pronounced shadow */
+}
+
+.user-avatar {
+  width: 90px; /* Slightly larger avatar */
+  height: 90px;
+  margin: 0 auto 15px;
+  border: 5px solid rgba(255, 255, 255, 0.4); /* Thicker, softer border */
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2); /* Subtle shadow for avatar */
+  border-radius: 50%; /* Ensure perfect circle */
+  overflow: hidden; /* Important for avatar images */
+}
+
+.welcome-text {
+  font-size: 26px; /* Larger welcome text */
+  font-weight: 700; /* Bolder */
+  margin: 0 0 8px; /* More space below */
+  letter-spacing: 0.5px; /* Slight letter spacing for elegance */
+}
+
+.welcome-subtitle {
+  font-size: 17px; /* Slightly larger subtitle */
+  opacity: 0.95; /* More opaque */
+  margin: 0;
+}
+
+/* --- Stats Container --- */
+.stats-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px; /* More space between cards */
+  margin-bottom: 30px; /* More space below */
+}
+
+.stat-card {
+  margin: 0;
+  border-radius: 20px; /* Softer corners */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* More pronounced shadow */
+  background: white; /* Ensure white background for cards */
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px); /* Subtle lift on hover */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card ion-card-content {
+  text-align: center;
+  padding: 25px; /* More padding inside cards */
+}
+
+.stat-icon {
+  font-size: 38px; /* Larger icons */
+  color: var(--ion-color-primary); /* Primary color for icons */
+  margin-bottom: 12px; /* More space below icon */
+  filter: drop-shadow(0 2px 3px rgba(var(--ion-color-primary-rgb), 0.3)); /* Subtle shadow for icons */
+}
+
+.stat-card h3 {
+  font-size: 28px; /* Larger numbers */
+  font-weight: 800; /* Extra bold */
+  color: var(--ion-color-dark); /* Darker color for numbers */
+  margin: 0 0 8px; /* More space below */
+}
+
+.stat-card p {
+  font-size: 15px; /* Slightly larger text */
+  color: var(--ion-color-medium);
+  margin: 0;
+}
+
+/* --- Section Header --- */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px; /* More space below */
+}
+
+.section-header h3 {
+  font-size: 22px; /* Larger heading */
+  font-weight: 700; /* Bolder */
+  color: var(--ion-color-dark);
+  margin: 0;
+  border-left: 4px solid var(--ion-color-primary); /* Accent line */
+  padding-left: 10px;
+}
+
+/* --- Counsellors Container --- */
+.counsellors-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* More space between counsellor cards */
+}
+
+.counsellor-card {
+  margin: 0;
+  border-radius: 20px; /* Softer corners */
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); /* More pronounced shadow */
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+  background: white; /* Ensure white background */
+}
+
+.counsellor-card:hover {
+  transform: translateY(-7px); /* More noticeable lift on hover */
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.18); /* Stronger shadow on hover */
+  background-color: #601b1b; /* Slightly lighter background on hover */
+}
+
+.counsellor-card ion-card-content {
+  padding: 25px; /* More padding */
+}
+
+/* --- Counsellor Header --- */
+.counsellor-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px; /* More space between avatar and info */
+  margin-bottom: 25px; /* More space below header */
+}
+
+.counsellor-avatar-container {
+  position: relative;
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.counsellor-avatar {
+  width: 70px; /* Slightly larger avatar */
+  height: 70px;
+  border: 4px solid var(--ion-color-primary); /* Solid primary border */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.status-indicator {
+  position: absolute;
+  bottom: 4px; /* Adjust position */
+  right: 4px; /* Adjust position */
+  width: 18px; /* Slightly larger indicator */
+  height: 18px;
+  border-radius: 50%;
+  background: var(--ion-color-tertiary); /* Danger color for inactive */
+  border: 3px solid white; /* Thicker white border */
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2); /* Shadow for indicator */
+}
+
+.status-indicator.active {
+  background: var(--ion-color-secondary); /* Secondary color for active */
+}
+
+.counsellor-info {
+  flex: 1;
+}
+
+.counsellor-name {
+  font-size: 20px; /* Larger name */
+  font-weight: 700; /* Bolder */
+  color: var(--ion-color-dark);
+  margin: 0 0 8px; /* More space below */
+  text-transform: capitalize;
+  letter-spacing: 0.3px;
+}
+
+.counsellor-qualification {
+  font-size: 15px; /* Slightly larger qualification */
+  color: var(--ion-color-primary);
+  margin: 0 0 12px; /* More space below */
+  text-transform: capitalize;
+  font-weight: 600; /* Bolder qualification */
+}
+
+.counsellor-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* More space between meta items */
+}
+
+.counsellor-meta span {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* More space between icon and text */
+  font-size: 13px; /* Slightly larger meta text */
+  color: var(--ion-color-medium);
+  font-weight: 500;
+}
+
+.counsellor-meta ion-icon {
+  font-size: 16px; /* Larger icons */
+  color: var(--ion-color-primary); /* Primary color for meta icons */
+}
+
+/* --- Counsellor Details --- */
+.counsellor-details {
+  background: var(--ion-color-light); /* Lighter background for details */
+  border-radius: 15px; /* Softer corners */
+  padding: 18px; /* More padding */
+  margin-bottom: 25px; /* More space below */
+  border: 1px solid rgba(0, 0, 0, 0.05); /* Subtle border */
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* More space */
+  margin-bottom: 12px; /* More space below */
+}
+
+.detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.detail-icon {
+  font-size: 20px; /* Larger icons */
+  color: var(--ion-color-primary);
+  min-width: 20px;
+}
+
+.detail-item span {
+  font-size: 15px; /* Slightly larger text */
+  color: var(--ion-color-dark);
+  font-weight: 500;
+}
+
+/* --- Counsellor Actions --- */
+.counsellor-actions {
+  display: flex;
+  gap: 20px; /* More space between buttons */
+  align-items: center;
+}
+
+.counsellor-actions ion-button[expand="block"] {
+  flex: 1;
+  --border-radius: 15px; /* Softer button corners */
+  font-weight: 700; /* Bolder button text */
+  height: 50px; /* Taller buttons */
+  letter-spacing: 0.5px;
+  --box-shadow: 0 4px 15px rgba(var(--ion-color-primary-rgb), 0.3); /* Subtle shadow for primary button */
+  transition: all 0.2s ease-in-out;
+}
+
+.counsellor-actions ion-button[expand="block"]:hover {
+  --box-shadow: 0 6px 20px rgba(var(--ion-color-primary-rgb), 0.4);
+  transform: translateY(-2px);
+}
+
+/* Add a new button for "Message" to show an example of multiple actions */
+.counsellor-actions .message-button {
+  --background: var(--ion-color-secondary);
+  --background-activated: var(--ion-color-secondary-shade);
+  --background-hover: var(--ion-color-secondary-tint);
+  --box-shadow: 0 4px 15px rgba(var(--ion-color-secondary-rgb), 0.3);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px; /* Space between secondary action buttons */
+}
+
+.action-buttons ion-button {
+  --border-radius: 12px; /* Softer corners */
+  --padding-start: 15px;
+  --padding-end: 15px;
+  height: 45px;
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 768px) {
+  .stats-container {
+    grid-template-columns: 1fr; /* Stack stats cards on smaller screens */
+  }
+  
+  .counsellor-actions {
+    flex-direction: column; /* Stack action buttons on smaller screens */
+    gap: 15px; /* Adjust gap */
+  }
+  
+  .counsellor-actions ion-button[expand="block"] {
+    width: 100%; /* Full width buttons */
+  }
+
+  .action-buttons {
+    width: 100%;
+    justify-content: stretch; /* Stretch buttons to fill width */
+  }
+
+  .action-buttons ion-button {
+    flex: 1; /* Make secondary buttons fill available space */
+  }
+
+  .welcome-section {
+    padding: 25px 15px;
+  }
+
+  .user-avatar {
+    width: 70px;
+    height: 70px;
+  }
+
+  .welcome-text {
+    font-size: 22px;
+  }
+
+  .welcome-subtitle {
+    font-size: 15px;
+  }
+
+  .stat-card ion-card-content {
+    padding: 20px;
+  }
+
+  .stat-card h3 {
+    font-size: 26px;
+  }
+
+  .section-header h3 {
+    font-size: 18px;
+  }
+
+  .counsellor-card ion-card-content {
+    padding: 20px;
+  }
+
+  .counsellor-avatar {
+    width: 60px;
+    height: 60px;
+  }
+
+  .counsellor-name {
+    font-size: 18px;
+  }
+
+  .counsellor-qualification {
+    font-size: 13px;
+  }
+
+  .counsellor-details {
+    padding: 15px;
+  }
+
+  .detail-item span {
+    font-size: 13px;
+  }
+}
+
+/* Animation for card entrance */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px); /* Start further down */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.counsellor-card {
+  animation: fadeInUp 0.6s ease-out forwards; /* Slightly longer animation, stays at end */
+}
+
+/* Add a subtle animation delay for each card to create a staggered effect */
+.counsellors-container ion-card:nth-child(1) { animation-delay: 0.1s; }
+.counsellors-container ion-card:nth-child(2) { animation-delay: 0.2s; }
+.counsellors-container ion-card:nth-child(3) { animation-delay: 0.3s; }
+.counsellors-container ion-card:nth-child(4) { animation-delay: 0.4s; }
+/* ... and so on for more cards */

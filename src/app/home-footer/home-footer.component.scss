@@ -1,0 +1,24 @@
+/* In your variables.scss or a component's scss */
+
+ion-tab-bar.custom-tab-bar {
+  --background: var(--ion-color-light); /* Or any color that fits your brand */
+  --border-top: none; /* Remove default border if you want a cleaner look */
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  padding-bottom: env(safe-area-inset-bottom); /* Handle iPhone notches */
+}
+
+ion-tab-button {
+  --color: var(--ion-color-medium); /* Default icon/label color */
+  --color-selected: var(--ion-color-primary); /* Color when active */
+  --padding-top: 8px; /* Adjust padding for spacing */
+  --padding-bottom: 8px;
+
+  ion-label {
+    font-size: 0.7em; /* Make label slightly smaller */
+    margin-top: 2px; /* Space between icon and label */
+  }
+
+  ion-icon {
+    font-size: 1.6em; /* Adjust icon size */
+  }
+}

@@ -1,0 +1,214 @@
+.call-container {
+  --background: var(--ion-background-color, #f4f5f8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: 16px;
+
+  &.connecting, &.ringing {
+    background: linear-gradient(135deg, #e0e0e0, #f4f5f8);
+  }
+
+  &.connected {
+    background: var(--ion-background-color, #fff);
+  }
+}
+
+.call-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  .counsellor-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .counsellor-avatar {
+      --size: 48px;
+    }
+
+    .call-details {
+      h2 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--ion-text-color, #000);
+      }
+
+      .call-status {
+        margin: 4px 0 0;
+        font-size: 0.9rem;
+        color: var(--ion-color-medium, #666);
+
+        &.connected {
+          color: var(--ion-color-success, #2dd36f);
+        }
+        &.disconnected, &.failed, &.ended {
+          color: var(--ion-color-danger, #eb445a);
+        }
+      }
+    }
+  }
+
+  .call-timer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+    color: var(--ion-text-color, #000);
+
+    ion-icon {
+      font-size: 1.2rem;
+    }
+  }
+}
+
+.ringing-indicator, .audio-visualizer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  text-align: center;
+
+  .wave-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 60px;
+
+    .wave {
+      width: 8px;
+      background: var(--ion-color-primary, #3880ff);
+      border-radius: 4px;
+      animation: wave 1.2s ease-in-out infinite;
+
+      &.active {
+        background: var(--ion-color-success, #2dd36f);
+      }
+
+      @for $i from 1 through 5 {
+        &.wave#{$i} {
+          height: calc(10px + #{$i * 8}px);
+          animation-delay: calc(#{$i * 0.1}s);
+        }
+      }
+    }
+  }
+
+  .ringing-text, .audio-status {
+    margin-top: 16px;
+    font-size: 1.1rem;
+    color: var(--ion-text-color, #000);
+  }
+}
+
+@keyframes wave {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.5); }
+}
+
+.video-container {
+  flex-grow: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  position: relative;
+
+  &.hidden {
+    display: none;
+  }
+
+  .video-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    background: #000;
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .video-label {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+
+    &.local-video-wrapper {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      width: 160px;
+      height: 90px;
+      z-index: 10;
+    }
+  }
+}
+
+.call-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  .control-btn {
+    --border-radius: 50%;
+    --padding-start: 16px;
+    --padding-end: 16px;
+    width: 56px;
+    height: 56px;
+
+    ion-icon {
+      font-size: 1.5rem;
+    }
+
+    &.end-call-btn {
+      --background: var(--ion-color-danger, #eb445a);
+    }
+  }
+}
+
+.connection-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  text-align: center;
+
+  ion-spinner {
+    --color: var(--ion-color-primary, #3880ff);
+    margin-bottom: 8px;
+  }
+
+  p {
+    font-size: 1.1rem;
+    color: var(--ion-text-color, #000);
+  }
+}

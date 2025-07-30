@@ -1,0 +1,117 @@
+<ion-content class="profile-content">
+  <div class="profile-header">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/counsellor-dashboard" aria-label="Back to dashboard"></ion-back-button>
+    </ion-buttons>
+    <h2>Counsellor Profile</h2>
+    <p>Complete your professional profile</p>
+  </div>
+
+  <ion-card class="profile-card">
+    <ion-card-content>
+      <!-- Profile Photo Section -->
+      <div class="profile-photo-section">
+        <div class="profile-photo-container">
+          <div class="profile-photo" (click)="selectPhoto()">
+            <ion-img *ngIf="profilePhotoUrl" [src]="profilePhotoUrl"></ion-img>
+            <div *ngIf="!profilePhotoUrl" class="photo-placeholder">
+              <ion-icon name="camera-outline" size="large"></ion-icon>
+            </div>
+          </div>
+          <div class="photo-upload-btn" (click)="selectPhoto()">
+            <ion-icon name="add-outline" size="small"></ion-icon>
+          </div>
+        </div>
+        <p class="photo-upload-text">Tap to add profile photo</p>
+        <input #photoInput type="file" accept="image/*" class="photo-input" (change)="onPhotoSelected($event)" />
+      </div>
+
+      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+        <!-- Personal Information Section -->
+        <div class="form-section">
+          <h3 class="section-title">Personal Information</h3>
+          
+          <ion-item class="form-item">
+            <ion-label position="floating">Full Name</ion-label>
+            <ion-input formControlName="name" placeholder="Enter your full name"></ion-input>
+          </ion-item>
+
+          <div class="form-row">
+            <ion-item class="form-item">
+              <ion-label position="floating">Age</ion-label>
+              <ion-input formControlName="age" type="number" placeholder="25"></ion-input>
+            </ion-item>
+            <ion-item class="form-item">
+              <ion-label position="floating">Gender</ion-label>
+              <ion-select formControlName="gender" placeholder="Select">
+                <ion-select-option *ngFor="let option of genderOptions" [value]="option.value">
+                  {{ option.label }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+        </div>
+
+        <!-- Contact Information Section -->
+        <div class="form-section">
+          <h3 class="section-title">Contact Information</h3>
+          
+          <ion-item class="form-item">
+            <ion-label position="floating">Email Address</ion-label>
+            <ion-input formControlName="email" type="email" placeholder="example@email.com"></ion-input>
+          </ion-item>
+
+          <ion-item class="form-item">
+            <ion-label position="floating">Phone Number</ion-label>
+            <ion-input formControlName="phone_number" type="tel" placeholder="+91 98765 43210"></ion-input>
+          </ion-item>
+        </div>
+
+        <!-- Professional Information Section -->
+        <div class="form-section">
+          <h3 class="section-title">Professional Information</h3>
+          
+          <ion-item class="form-item">
+            <ion-label position="floating">Qualification</ion-label>
+            <ion-input formControlName="qualification" placeholder="e.g., M.A. Psychology, PhD"></ion-input>
+          </ion-item>
+
+          <ion-item class="form-item">
+            <ion-label position="floating">Experience (Years)</ion-label>
+            <ion-input formControlName="experience" type="number" placeholder="5"></ion-input>
+          </ion-item>
+        </div>
+
+        <!-- Payment Information Section -->
+        <div class="form-section">
+          <h3 class="section-title">Payment Information</h3>
+          
+          <ion-item class="form-item">
+            <ion-label position="floating">Google Pay Number</ion-label>
+            <ion-input formControlName="google_pay_number" type="tel" placeholder="+91 98765 43210"></ion-input>
+          </ion-item>
+
+          <ion-item class="form-item">
+            <ion-label position="floating">Account Number</ion-label>
+            <ion-input formControlName="account_number" placeholder="Enter account number"></ion-input>
+          </ion-item>
+
+          <ion-item class="form-item">
+            <ion-label position="floating">IFSC Code</ion-label>
+            <ion-input formControlName="ifsc_code" placeholder="e.g., SBIN0001234"></ion-input>
+          </ion-item>
+        </div>
+
+        <ion-button 
+          type="submit" 
+          expand="block" 
+          shape="round" 
+          class="submit-btn"
+          [disabled]="!profileForm.valid">
+          <ion-icon name="save-outline" slot="start"></ion-icon>
+          Update Profile
+        </ion-button>
+      </form>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

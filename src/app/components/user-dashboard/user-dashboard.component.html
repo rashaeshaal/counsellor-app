@@ -1,0 +1,95 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title></ion-title> 
+    <ion-buttons slot="end">
+      <ion-button fill="clear" color="light"> 
+        <ion-icon name="notifications-outline" size="large"></ion-icon> 
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding user-content">
+  <div class="welcome-section">
+    <ion-avatar class="user-avatar">
+      <img src="https://via.placeholder.com/90x90/4CAF50/FFFFFF?text=U" alt="User Avatar">
+    </ion-avatar>
+    <h2 class="welcome-text">Welcome, {{ user?.name || 'Guest' }}!</h2>
+    <p class="welcome-subtitle">Your journey to well-being starts here.</p>
+  </div>
+
+  <div class="stats-container">
+    <ion-card class="stat-card">
+      <ion-card-content>
+        <ion-icon name="people-outline" class="stat-icon"></ion-icon>
+        <h3>{{ counsellors.length || 0 }}</h3>
+        <p>Expert Counsellors</p>
+      </ion-card-content>
+    </ion-card>
+    <ion-card class="stat-card">
+      <ion-card-content>
+        <ion-icon name="calendar-outline" class="stat-icon"></ion-icon>
+        <h3>Available 24/7</h3>
+        <p>On-Demand Support</p>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <div class="section-header">
+    <h3>Meet Our Counsellors</h3>
+    <ion-button fill="clear" size="small" color="primary">
+      View All <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
+    </ion-button>
+  </div>
+
+  <div class="counsellors-container">
+    <ion-card *ngFor="let counsellor of counsellors" class="counsellor-card">
+      <ion-card-content>
+        <div class="counsellor-header">
+          <div class="counsellor-avatar-container">
+            <ion-avatar class="counsellor-avatar">
+              <img [src]="counsellor.profile_photo || 'https://via.placeholder.com/70x70/2196F3/FFFFFF?text=' + counsellor.name.charAt(0)" 
+                   [alt]="counsellor.name">
+            </ion-avatar>
+            <div class="status-indicator" [class.active]="counsellor.is_active"></div>
+          </div>
+          
+          <div class="counsellor-info">
+            <h3 class="counsellor-name">{{ counsellor.name }}</h3>
+            <p class="counsellor-qualification">{{ counsellor.qualification }}</p>
+            <div class="counsellor-meta">
+              <span class="experience">
+                <ion-icon name="briefcase-outline"></ion-icon>
+                {{ counsellor.experience }} years experience
+              </span>
+              <span>
+                <ion-icon name="star"></ion-icon>
+                4.9 (120 reviews)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="counsellor-details">
+          <div class="detail-item">
+            <ion-icon name="location-outline" class="detail-icon"></ion-icon>
+            <span>Online {{ counsellor.city || '' }}</span>
+          </div>
+          <div class="detail-item">
+            <ion-icon name="cash-outline" class="detail-icon"></ion-icon>
+            <span>₹{{ counsellor.payment_settings?.session_fee || 50 }}/session ({{ counsellor.payment_settings?.session_duration || 20 }} min)</span>
+          </div>
+        </div>
+
+        <div class="counsellor-actions">
+          <ion-button expand="block" fill="solid" color="primary" (click)="bookCounsellor(counsellor)">
+            <ion-icon name="call-outline" slot="start"></ion-icon>
+            Call Now
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>
+
+<app-home-footer></app-home-footer>

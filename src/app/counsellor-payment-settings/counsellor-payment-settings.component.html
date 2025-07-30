@@ -1,0 +1,30 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/counsellor-dashboard"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Payment Settings</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="payment-settings-container">
+    <h2>Manage Payment Settings</h2>
+    <ion-card>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Session Fee (₹)</ion-label>
+          <ion-input type="number" [(ngModel)]="paymentSettings.session_fee" min="10" step="0.01" required></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Session Duration (minutes)</ion-label>
+          <ion-input type="number" [(ngModel)]="paymentSettings.session_duration" min="10" step="1" required></ion-input>
+        </ion-item>
+        <ion-button expand="block" color="primary" (click)="savePaymentSettings()">
+          <ion-icon name="save-outline" slot="start"></ion-icon>
+          Save Settings
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

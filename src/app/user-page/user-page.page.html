@@ -1,0 +1,68 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/" aria-label="Back to home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Welcome</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="login-container">
+    <div class="login-header">
+      <ion-icon name="person-circle-outline" class="login-icon"></ion-icon>
+      <h2>Sign In</h2>
+      <p>Enter your phone number to continue</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="signIn()" class="login-form">
+      <ion-card class="login-card">
+        <ion-card-content>
+          <ion-item class="phone-input-item" lines="none">
+            <ion-label position="floating"></ion-label>
+            <ion-input
+              type="tel"
+              formControlName="phone"
+              placeholder="Enter your phone number"
+              maxlength="10"
+              clear-input="true"
+            ></ion-input>
+          </ion-item>
+
+          <div class="error-messages" *ngIf="form.controls['phone'].invalid && form.controls['phone'].touched">
+            <ion-text color="danger" *ngIf="form.controls['phone'].errors?.['required']">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              Phone number is required
+            </ion-text>
+            <ion-text color="danger" *ngIf="form.controls['phone'].errors?.['minlength'] || form.controls['phone'].errors?.['maxlength']">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              Phone number must be exactly 10 digits
+            </ion-text>
+          </div>
+
+          <div id="recaptcha-container" class="recaptcha-container"></div>
+
+          <ion-text *ngIf="isTestMode" color="warning">
+            <p>Test numbers: +917510780558 (OTP: 789654),</p>
+          </ion-text>
+
+          <ion-button
+            expand="block"
+            type="submit"
+            [disabled]="!form.valid"
+            class="login-button"
+          >
+            <ion-icon name="log-in-outline" slot="start"></ion-icon>
+            Sign In
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+    </form>
+
+    <div class="login-footer">
+      <ion-text color="medium">
+        <small>By signing in, you agree to our Terms of Service and Privacy Policy</small>
+      </ion-text>
+    </div>
+  </div>
+</ion-content>

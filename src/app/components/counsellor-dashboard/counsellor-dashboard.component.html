@@ -1,0 +1,13 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Counsellor Dashboard</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding dashboard-content">
+  <h2>Welcome, {{ counsellor?.name || 'Counsellor' }}</h2>
+  <p>Status: {{ counsellor?.is_active ? 'Active' : 'Inactive' }}</p>
+  <p>Use the footer below to manage your profile, view notifications, toggle status, or handle calls.</p>
+</ion-content>
+
+<app-footer></app-footer>

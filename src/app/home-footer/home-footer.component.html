@@ -1,0 +1,20 @@
+<ion-tab-bar slot="bottom" class="custom-tab-bar">
+   <ion-tab-button (click)="navigateTo('/home')">
+    <ion-icon name="home-outline"></ion-icon>
+    <ion-label>Home</ion-label>
+  </ion-tab-button>
+  <ion-tab-button (click)="navigateTo('/user-profile')">
+    <ion-icon name="person-circle-outline"></ion-icon>
+    <ion-label>Profile</ion-label>
+  </ion-tab-button>
+
+  <ion-tab-button (click)="navigateTo('/user-notifications')">
+    <ion-icon name="notifications-outline"></ion-icon>
+    <ion-label>Notifications</ion-label>
+  </ion-tab-button>
+
+  <ion-tab-button (click)="navigateTo('/settings')">
+    <ion-icon name="settings-outline"></ion-icon>
+    <ion-label>Settings</ion-label>
+  </ion-tab-button>
+</ion-tab-bar>

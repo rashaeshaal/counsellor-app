@@ -1,0 +1,48 @@
+<ion-content class="ion-padding">
+  <ion-grid>
+    <ion-row>
+      <ion-col>
+        <h2>Welcome Back</h2>
+        <p>Access your counsellor dashboard.</p>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        <form (ngSubmit)="login()" #loginForm="ngForm">
+          <ion-item>
+            <ion-label position="floating">Phone Number</ion-label>
+            <ion-input
+              type="tel"
+              name="phoneNumber"
+              placeholder="+919876543210"
+              required
+              pattern="^\+91\d{10}$"
+              [(ngModel)]="phoneNumber"
+              #phone="ngModel"
+            ></ion-input>
+            <ion-note slot="error" *ngIf="phone.invalid && phone.touched">
+              Please enter a valid Indian phone number (e.g., +919876543210).
+            </ion-note>
+          </ion-item>
+          <ion-button
+            expand="block"
+            type="submit"
+            color="primary"
+            class="ion-margin-top"
+            [disabled]="loginForm.invalid"
+          >
+            Log In
+          </ion-button>
+        </form>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col class="ion-text-center">
+        <p>
+          Don't have an account?
+          <a (click)="navigateToRegister()" class="register-link">Register as a Counsellor</a>
+        </p>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>

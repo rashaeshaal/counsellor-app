@@ -1,0 +1,229 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/" aria-label="Back to home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Register as Counsellor</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="counsellorForm" (ngSubmit)="onSubmit()" novalidate>
+    
+    <!-- Progress Bar -->
+    <div class="progress-container">
+      <div class="progress-bar" [style.width.%]="getProgressPercentage()"></div>
+    </div>
+    
+    <!-- Form Header -->
+    <div class="form-header">
+      <h2 class="form-title">Join Our Team</h2>
+      <p class="form-subtitle">Complete your profile</p>
+    </div>
+    
+    <!-- Profile Photo Section -->
+    <div class="profile-photo-section">
+      <div class="profile-photo-container">
+        <div class="profile-photo" (click)="selectPhoto()">
+          <img *ngIf="profilePhotoUrl" [src]="profilePhotoUrl" alt="Profile Photo" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+          <ion-icon *ngIf="!profilePhotoUrl" name="person-outline" size="large"></ion-icon>
+        </div>
+        <div class="photo-upload-btn" (click)="selectPhoto()">
+          <ion-icon name="camera-outline"></ion-icon>
+        </div>
+      </div>
+      <p class="photo-upload-text">Upload your professional photo</p>
+      <input type="file" class="photo-input" (change)="onPhotoSelected($event)" accept="image/*" #photoInput>
+    </div>
+
+    <!-- Success Message -->
+    <div class="success-message" [class.show]="showSuccessMessage">
+      <ion-icon name="checkmark-circle-outline"></ion-icon>
+      Registration submitted successfully!.
+    </div>
+
+    <!-- Form Fields arranged in rows for better layout -->
+    <div class="form-row">
+      <!-- Name -->
+      <ion-item>
+        <ion-label position="floating">Full Name</ion-label>
+        <ion-input
+          formControlName="name"
+          type="text"
+          aria-label="Counsellor Name"
+          placeholder="Enter your full name"
+          [class.valid]="counsellorForm.get('name')?.valid && counsellorForm.get('name')?.touched"
+          [class.invalid]="counsellorForm.get('name')?.touched && counsellorForm.get('name')?.invalid"
+        ></ion-input>
+        <ion-text color="danger" *ngIf="counsellorForm.get('name')?.touched && counsellorForm.get('name')?.invalid">
+          Name is required (max 255 characters)
+        </ion-text>
+      </ion-item>
+
+      <!-- Age -->
+      <ion-item>
+        <ion-label position="floating">Age</ion-label>
+        <ion-input
+          formControlName="age"
+          type="number"
+          aria-label="Age"
+          placeholder="Enter your age"
+          [class.valid]="counsellorForm.get('age')?.valid && counsellorForm.get('age')?.touched"
+          [class.invalid]="counsellorForm.get('age')?.touched && counsellorForm.get('age')?.invalid"
+        ></ion-input>
+        <ion-text color="danger" *ngIf="counsellorForm.get('age')?.touched && counsellorForm.get('age')?.invalid">
+          Age must be between 18 and 100
+        </ion-text>
+      </ion-item>
+    </div>
+
+    <div class="form-row">
+      <!-- Email -->
+      <ion-item>
+        <ion-label position="floating">Email Address</ion-label>
+        <ion-input
+          formControlName="email"
+          type="email"
+          aria-label="Email"
+          placeholder="Enter your email"
+          [class.valid]="counsellorForm.get('email')?.valid && counsellorForm.get('email')?.touched"
+          [class.invalid]="counsellorForm.get('email')?.touched && counsellorForm.get('email')?.invalid"
+        ></ion-input>
+        <ion-text color="danger" *ngIf="counsellorForm.get('email')?.touched && counsellorForm.get('email')?.invalid">
+          Valid email is required
+        </ion-text>
+      </ion-item>
+
+      <!-- Gender -->
+      <ion-item>
+        <ion-label position="floating">Gender</ion-label>
+        <ion-select
+          formControlName="gender"
+          aria-label="Gender"
+          placeholder="Select Gender"
+          [class.valid]="counsellorForm.get('gender')?.valid && counsellorForm.get('gender')?.touched"
+          [class.invalid]="counsellorForm.get('gender')?.touched && counsellorForm.get('gender')?.invalid"
+        >
+          <ion-select-option *ngFor="let option of genderOptions" [value]="option.value">
+            {{ option.label }}
+          </ion-select-option>
+        </ion-select>
+        <ion-text color="danger" *ngIf="counsellorForm.get('gender')?.touched && counsellorForm.get('gender')?.invalid">
+          Gender is required
+        </ion-text>
+      </ion-item>
+    </div>
+
+    <div class="form-row">
+      <!-- Phone Number -->
+      <ion-item>
+        <ion-label position="floating">Phone Number</ion-label>
+        <ion-input
+          formControlName="phone_number"
+          type="tel"
+          aria-label="Phone Number"
+          placeholder="+91XXXXXXXXXX"
+          [class.valid]="counsellorForm.get('phone_number')?.valid && counsellorForm.get('phone_number')?.touched"
+          [class.invalid]="counsellorForm.get('phone_number')?.touched && counsellorForm.get('phone_number')?.invalid"
+        ></ion-input>
+        <ion-text color="danger" *ngIf="counsellorForm.get('phone_number')?.touched && counsellorForm.get('phone_number')?.invalid">
+          Enter phone number with country code (e.g., +91XXXXXXXXXX)
+        </ion-text>
+      </ion-item>
+
+      <!-- Experience -->
+      <ion-item>
+        <ion-label position="floating">Experience (Years)</ion-label>
+        <ion-input
+          formControlName="experience"
+          type="number"
+          aria-label="Experience" 
+          placeholder="Enter years of experience"
+          [class.valid]="counsellorForm.get('experience')?.valid && counsellorForm.get('experience')?.touched"
+          [class.invalid]="counsellorForm.get('experience')?.touched && counsellorForm.get('experience')?.invalid"
+        ></ion-input>
+        <ion-text color="danger" *ngIf="counsellorForm.get('experience')?.touched && counsellorForm.get('experience')?.invalid">
+          Experience must be a valid number
+        </ion-text>
+      </ion-item>
+    </div>
+
+    <!-- Qualification (Full Width) -->
+    <ion-item>
+      <ion-label position="floating">Qualifications</ion-label>
+      <ion-textarea
+        formControlName="qualification"
+        aria-label="Qualification"
+        placeholder="Enter your qualifications, certifications, and educational background"
+        [class.valid]="counsellorForm.get('qualification')?.valid && counsellorForm.get('qualification')?.touched"
+        [class.invalid]="counsellorForm.get('qualification')?.touched && counsellorForm.get('qualification')?.invalid"
+      ></ion-textarea>
+      <ion-text color="danger" *ngIf="counsellorForm.get('qualification')?.touched && counsellorForm.get('qualification')?.invalid">
+        Qualification is required (max 500 characters)
+      </ion-text>
+    </ion-item>
+
+    <div class="form-row">
+      <!-- Google Pay Number -->
+      <ion-item>
+        <ion-label position="floating">Google Pay Number</ion-label>
+        <ion-input
+          formControlName="google_pay_number"
+          type="tel"
+          aria-label="Google Pay Number"
+          placeholder="+91XXXXXXXXXX"
+          [class.valid]="counsellorForm.get('google_pay_number')?.valid && counsellorForm.get('google_pay_number')?.touched"
+          [class.invalid]="counsellorForm.get('google_pay_number')?.touched && counsellorForm.get('google_pay_number')?.invalid"
+        ></ion-input>
+        <ion-text color="danger" *ngIf="counsellorForm.get('google_pay_number')?.touched && counsellorForm.get('google_pay_number')?.invalid">
+          Valid Google Pay number is required (e.g., +91XXXXXXXXXX)
+        </ion-text>
+      </ion-item>
+
+      <!-- IFSC Code -->
+      <ion-item>
+        <ion-label position="floating">IFSC Code</ion-label>
+        <ion-input
+          formControlName="ifsc_code"
+          type="text"
+          aria-label="IFSC Code"
+          placeholder="Enter IFSC code (e.g., SBIN0001234)"
+          [class.valid]="counsellorForm.get('ifsc_code')?.valid && counsellorForm.get('ifsc_code')?.touched"
+          [class.invalid]="counsellorForm.get('ifsc_code')?.touched && counsellorForm.get('ifsc_code')?.invalid"
+        ></ion-input>
+        <ion-text color="danger" *ngIf="counsellorForm.get('ifsc_code')?.touched && counsellorForm.get('ifsc_code')?.invalid">
+          Valid IFSC code is required (e.g., SBIN0001234)
+        </ion-text>
+      </ion-item>
+    </div>
+
+    <!-- Account Number (Full Width) -->
+    <ion-item>
+      <ion-label position="floating">Bank Account Number</ion-label>
+      <ion-input
+        formControlName="account_number"
+        type="text"
+        aria-label="Account Number"
+        placeholder="Enter bank account number"
+        [class.valid]="counsellorForm.get('account_number')?.valid && counsellorForm.get('account_number')?.touched"
+        [class.invalid]="counsellorForm.get('account_number')?.touched && counsellorForm.get('account_number')?.invalid"
+      ></ion-input>
+      <ion-text color="danger" *ngIf="counsellorForm.get('account_number')?.touched && counsellorForm.get('account_number')?.invalid">
+        Account number must be between 9 and 20 digits
+      </ion-text>
+    </ion-item>
+
+    <!-- Submit Button -->
+    <ion-button
+      type="submit"
+      expand="block"
+      style="#33CEA4"
+      [disabled]="counsellorForm.invalid || isLoading"
+      [class.loading]="isLoading"
+      aria-label="Register Counsellor"
+    >
+      <span *ngIf="!isLoading">Register as Counsellor</span>
+      <span *ngIf="isLoading">Submitting...</span>
+    </ion-button>
+  </form>
+</ion-content>
