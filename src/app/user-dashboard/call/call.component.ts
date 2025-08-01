@@ -354,10 +354,10 @@ async endCall() {
     return this.counsellor?.name || this.counsellor?.username || 'Counsellor';
   }
 
-  get counsellorAvatar(): string {
-    return this.counsellor?.profile_picture || this.counsellor?.avatar || 'assets/images/default-avatar.png';
-  }
-  onImageError(event: Event) {
-    (event.target as HTMLImageElement).src = 'assets/images/default-avatar.png';
-  }
+  // get counsellorAvatar(): string {
+  //   return this.counsellor?.profile_picture || this.counsellor?.avatar || 'assets/images/default-avatar.png';
+  // }
+  // onImageError(event: Event) {
+  //   (event.target as HTMLImageElement).src = 'assets/images/default-avatar.png';
+  // }
 } 

@@ -219,60 +219,73 @@ export class WebrtcService {
   // Counsellor accepts incoming call
   async acceptIncomingCall(bookingId: number, constraints: MediaConstraints = { audio: true, video: false }, accessToken?: string): Promise<void> {
     try {
-      this.bookingId = bookingId;
-      this.accessToken = accessToken || localStorage.getItem('access_token') || null;
-      this.currentMediaConstraints = constraints;
-      this.reconnectAttempts = 0;
-      this.isInitiator = false;
-      
-      console.log('Counsellor accepting incoming call with bookingId:', bookingId, 'constraints:', constraints);
-      this.callStateSubject.next('accepting');
-      
-      // Setup peer connection
-      this.setupPeerConnection();
-      
-      // Get user media
-      this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
-      console.log('Local stream obtained:', this.localStream, 'Tracks:', this.localStream.getTracks());
-      this.localStreamSubject.next(this.localStream);
+        this.bookingId = bookingId;
+        this.accessToken = accessToken || localStorage.getItem('access_token') || null;
+        this.currentMediaConstraints = constraints;
+        this.reconnectAttempts = 0;
+        this.isInitiator = false;
+        
+        console.log('Counsellor accepting incoming call with bookingId:', bookingId, 'constraints:', constraints);
+        this.callStateSubject.next('accepting');
+        
+        // Ensure we have a fresh peer connection
+        if (this.peerConnection) {
+            console.log('Closing existing peer connection before accepting call');
+            this.peerConnection.close();
+        }
+        this.setupPeerConnection();
+        
+        // Get user media
+        try {
+            this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
+            console.log('Local stream obtained for counsellor:', this.localStream, 'Tracks:', this.localStream.getTracks());
+            this.localStreamSubject.next(this.localStream);
+        } catch (mediaError) {
+            console.error('Failed to get user media:', mediaError);
+            this.callStateSubject.next('failed');
+            throw new Error('Failed to access camera/microphone');
+        }
 
-      // Add tracks to peer connection
-      if (this.localStream) {
-        this.localStream.getTracks().forEach(track => {
-          if (this.peerConnection && this.localStream) {
-            console.log('Adding track:', track.kind, 'Enabled:', track.enabled);
-            this.peerConnection.addTrack(track, this.localStream);
-          }
+        // Add tracks to peer connection
+        if (this.localStream && this.peerConnection) {
+            this.localStream.getTracks().forEach(track => {
+                if (this.peerConnection && this.localStream) {
+                    console.log('Adding track to peer connection:', track.kind, 'Enabled:', track.enabled);
+                    this.peerConnection.addTrack(track, this.localStream);
+                }
+            });
+        }
+
+        if (!this.accessToken) {
+            console.error('No access token provided for WebSocket connection');
+            this.callStateSubject.next('failed');
+            throw new Error('No authentication token available');
+        }
+
+        // Ensure WebSocket is connected
+        if (!this.websocket || this.websocket.readyState !== WebSocket.OPEN) {
+            console.log('WebSocket not connected, connecting now...');
+            await this.connectWebSocketAsync(bookingId, this.accessToken);
+        }
+        
+        console.log('WebSocket connected for accepting call');
+        this.callStateSubject.next('connecting');
+        
+        // Send call accepted message
+        this.sendMessage({
+            type: 'call_accepted',
+            booking_id: this.bookingId,
+            user_type: 'counsellor'
         });
-      }
-
-      if (!this.accessToken) {
-        console.error('No access token provided for WebSocket connection');
-        this.callStateSubject.next('failed');
-        throw new Error('No authentication token available');
-      }
-
-      // Connect to WebSocket if not already connected
-      if (!this.websocket || this.websocket.readyState !== WebSocket.OPEN) {
-        await this.connectWebSocketAsync(bookingId, this.accessToken);
-      }
-      
-      console.log('WebSocket connected for accepting call');
-      this.callStateSubject.next('connecting');
-      
-      // Send call accepted message
-      this.sendMessage({
-        type: 'call_accepted',
-        booking_id: this.bookingId,
-        user_type: 'counsellor'
-      });
-      
+        
+        console.log('Call accepted message sent, waiting for offer...');
+        
     } catch (error) {
-      console.error('Error accepting incoming call:', error);
-      this.callStateSubject.next('failed');
-      throw error;
+        console.error('Error accepting incoming call:', error);
+        this.callStateSubject.next('failed');
+        throw error;
     }
-  }
+}
 
   // Initialize for counsellor to listen for incoming calls
   async initializeCounsellorCall(bookingId: number, accessToken?: string): Promise<void> {
@@ -389,94 +402,114 @@ export class WebrtcService {
     console.log('Handling message:', message);
     
     switch (message.type) {
-      case 'call_initiated':
-        // Counsellor receives this when user starts a call
-        this.callStateSubject.next('incoming');
-        this.messageSubject.next(message);
-        break;
-        
-      case 'call_accepted':
-        // User receives this when counsellor accepts
-        console.log('Call accepted by counsellor');
-        this.callStateSubject.next('connecting');
-        this.messageSubject.next(message);
-        
-        // If user initiated the call, create offer now
-        if (this.isInitiator) {
-          setTimeout(() => {
-            this.createOffer();
-          }, 500);
-        }
-        break;
-        
-      case 'offer':
-        this.handleOffer(message);
-        break;
-        
-      case 'answer':
-        this.handleAnswer(message);
-        break;
-        
-      case 'ice-candidate':
-        this.handleIceCandidate(message);
-        break;
-        
-      case 'call-ended':
-      case 'call_ended':
-        this.endCall();
-        break;
-        
-      case 'call-rejected':
-      case 'call_rejected':
-        this.callStateSubject.next('ended');
-        this.messageSubject.next(message);
-        break;
-        
-      case 'media-toggle':
-        this.handleMediaToggle(message);
-        break;
-        
-      default:
-        console.log('Unknown message type:', message.type);
-        this.messageSubject.next(message);
+        case 'call_initiated':
+            // Counsellor receives this when user starts a call
+            console.log('Call initiated by user, setting state to incoming');
+            this.callStateSubject.next('incoming');
+            this.messageSubject.next(message);
+            break;
+            
+        case 'call_accepted':
+            // User receives this when counsellor accepts
+            console.log('Call accepted by counsellor, user should create offer');
+            this.callStateSubject.next('connecting');
+            this.messageSubject.next(message);
+            
+            // If user initiated the call, create offer now
+            if (this.isInitiator) {
+                console.log('User is initiator, creating offer...');
+                setTimeout(() => {
+                    this.createOffer();
+                }, 1000); // Increased delay to ensure counsellor is ready
+            }
+            break;
+            
+        case 'offer':
+            console.log('Received offer, handling...');
+            this.handleOffer(message);
+            break;
+            
+        case 'answer':
+            console.log('Received answer, handling...');
+            this.handleAnswer(message);
+            break;
+            
+        case 'ice-candidate':
+            console.log('Received ICE candidate, handling...');
+            this.handleIceCandidate(message);
+            break;
+            
+        case 'call-ended':
+        case 'call_ended':
+            console.log('Call ended message received');
+            this.endCall();
+            break;
+            
+        case 'call-rejected':
+        case 'call_rejected':
+            console.log('Call rejected message received');
+            this.callStateSubject.next('ended');
+            this.messageSubject.next(message);
+            break;
+            
+        case 'media-toggle':
+            this.handleMediaToggle(message);
+            break;
+            
+        default:
+            console.log('Unknown message type:', message.type);
+            this.messageSubject.next(message);
     }
-  }
+}
+
 
   private async handleOffer(message: any) {
     try {
-      console.log('Handling offer:', message.offer);
-      
-      if (this.ensurePeerConnection()) {
-        await this.peerConnection!.setRemoteDescription(new RTCSessionDescription(message.offer));
+        console.log('Handling offer:', message.offer);
         
-        if (!this.localStream) {
-          this.localStream = await navigator.mediaDevices.getUserMedia(this.currentMediaConstraints);
-          this.localStreamSubject.next(this.localStream);
-          
-          this.localStream.getTracks().forEach(track => {
-            if (this.peerConnection && this.localStream) {
-              console.log('Adding track for answer:', track.kind);
-              this.peerConnection.addTrack(track, this.localStream);
-            }
-          });
+        if (!this.ensurePeerConnection()) {
+            throw new Error('Peer connection not ready for offer');
         }
         
+        // Set remote description
+        console.log('Setting remote description with offer...');
+        await this.peerConnection!.setRemoteDescription(new RTCSessionDescription(message.offer));
+        console.log('Remote description set successfully');
+        
+        // Ensure we have local stream
+        if (!this.localStream) {
+            console.log('No local stream, getting user media...');
+            this.localStream = await navigator.mediaDevices.getUserMedia(this.currentMediaConstraints);
+            this.localStreamSubject.next(this.localStream);
+            
+            this.localStream.getTracks().forEach(track => {
+                if (this.peerConnection && this.localStream) {
+                    console.log('Adding track for answer:', track.kind);
+                    this.peerConnection.addTrack(track, this.localStream);
+                }
+            });
+        }
+        
+        // Create and send answer
+        console.log('Creating answer...');
         const answer = await this.peerConnection!.createAnswer();
+        console.log('Answer created, setting local description...');
         await this.peerConnection!.setLocalDescription(answer);
         
+        console.log('Sending answer...');
         this.sendMessage({
-          type: 'answer',
-          answer: answer,
-          booking_id: this.bookingId
+            type: 'answer',
+            answer: answer,
+            booking_id: this.bookingId
         });
         
         console.log('Answer sent successfully');
-      }
+        
     } catch (error) {
-      console.error('Error handling offer:', error);
-      this.callStateSubject.next('failed');
+        console.error('Error handling offer:', error);
+        this.callStateSubject.next('failed');
     }
-  }
+}
 
   private async handleAnswer(message: any) {
     try {
@@ -521,28 +554,33 @@ export class WebrtcService {
 
   async createOffer(): Promise<void> {
     try {
-      if (this.ensurePeerConnection()) {
-        console.log('Creating offer...');
+        if (!this.ensurePeerConnection()) {
+            throw new Error('Peer connection not ready for creating offer');
+        }
+        
+        console.log('Creating offer with peer connection state:', this.peerConnection!.signalingState);
         const offer = await this.peerConnection!.createOffer({
-          offerToReceiveAudio: true,
-          offerToReceiveVideo: this.currentMediaConstraints.video
+            offerToReceiveAudio: true,
+            offerToReceiveVideo: this.currentMediaConstraints.video
         });
         
+        console.log('Offer created, setting local description...');
         await this.peerConnection!.setLocalDescription(offer);
         
+        console.log('Sending offer...');
         this.sendMessage({
-          type: 'offer',
-          offer: offer,
-          booking_id: this.bookingId
+            type: 'offer',
+            offer: offer,
+            booking_id: this.bookingId
         });
         
         console.log('Offer sent successfully');
-      }
+        
     } catch (error) {
-      console.error('Error creating offer:', error);
-      this.callStateSubject.next('failed');
+        console.error('Error creating offer:', error);
+        this.callStateSubject.next('failed');
     }
-  }
+}
 
   rejectCall(): void {
     console.log('Rejecting call...');

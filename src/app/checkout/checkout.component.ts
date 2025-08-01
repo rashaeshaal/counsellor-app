@@ -80,7 +80,7 @@ export class CheckoutComponent implements OnInit {
     console.log('Checkout: Initiating payment with payload:', payload);
 
     const paymentSub = this.http
-      .post(`${environment.apiUrl}/api/payment/create-order/`, payload)
+      .post(`${environment.apiUrl}/api/dashboard/payment/create-order/`, payload)
       .subscribe({
         next: (response: any) => {
           console.log('Razorpay order response:', response);
@@ -165,7 +165,7 @@ export class CheckoutComponent implements OnInit {
     }).toString();
 
     const verifySub = this.http
-      .post(`${environment.apiUrl}/api/payment/verify-payment/`, payload, {
+      .post(`${environment.apiUrl}/api/dashboard/payment/verify-payment/`, payload, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       })
       .subscribe({
@@ -202,7 +202,7 @@ export class CheckoutComponent implements OnInit {
 
       // First initiate call via API to create CallRequest and notify counsellor
       const callInitSub = this.http
-        .post(`${environment.apiUrl}/api/call/initiate/`, { booking_id: bookingId })
+        .post(`${environment.apiUrl}/api/dashboard/call/initiate/`, { booking_id: bookingId })
         .subscribe({
           next: async (response: any) => {
             console.log('Call initiation response:', response);

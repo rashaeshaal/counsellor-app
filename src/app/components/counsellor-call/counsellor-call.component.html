@@ -2,11 +2,7 @@
   <!-- Call Header -->
   <div class="call-header">
     <div class="client-info">
-      <ion-avatar class="client-avatar">
-        <img [src]="clientAvatar" 
-             [alt]="clientName + ' avatar'" 
-             (error)="onImageError($event)">
-      </ion-avatar>
+      
       <div class="call-details">
         <h2>{{ clientName }}</h2>
         <p class="call-status" [ngClass]="callState" aria-live="polite">{{ callStateText }}</p>

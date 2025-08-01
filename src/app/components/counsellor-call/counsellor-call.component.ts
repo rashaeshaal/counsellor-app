@@ -168,7 +168,7 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
       'Authorization': `Bearer ${localStorage.getItem('access_token') ?? ''}`
     });
 
-    const bookingSub = this.http.get(`${environment.apiUrl}/api/bookings/${this.bookingId}/`, { headers })
+    const bookingSub = this.http.get(`${environment.apiUrl}/api/counsellor/bookings/${this.bookingId}/`, { headers })
       .subscribe({
         next: (response: any) => {
           console.log('Booking details loaded:', response);
@@ -238,70 +238,92 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
 
   private setupCallStateSubscription() {
     const callStateSub = this.webrtcService.getCallStateObservable().subscribe((state: string) => {
-      console.log('Call state in CounsellorCallComponent:', state);
-      this.callState = state;
+        console.log('Call state in CounsellorCallComponent:', state);
+        this.callState = state;
 
-      switch (state) {
-        case 'incoming':
-          this.hasIncomingCall = true;
-          this.incomingCallMessage = `Incoming call from ${this.clientInfo.name || 'Client'}`;
-          this.showToast(this.incomingCallMessage, 'primary');
-          break;
-        case 'connected':
-          this.startCallTimer();
-          this.hasIncomingCall = false;
-          this.incomingCallMessage = '';
-          this.showToast('Call connected successfully!', 'success');
-          this.setupMediaElements();
-          break;
-        case 'disconnected':
-        case 'failed':
-        case 'ended':
-          this.clearTimer();
-          this.hasIncomingCall = false;
-          this.incomingCallMessage = '';
-          this.showToast('Call ended', 'warning');
-          setTimeout(() => {
-            if (!this.isDestroyed) {
-              this.router.navigate(['/counsellor-dashboard']);
-            }
-          }, 1500);
-          break;
-      }
+        switch (state) {
+            case 'incoming':
+                this.hasIncomingCall = true;
+                this.incomingCallMessage = `Incoming call from ${this.clientInfo.name || 'Client'}`;
+                this.showToast(this.incomingCallMessage, 'primary');
+                break;
+            case 'accepting':
+                this.callState = 'connecting';
+                this.hasIncomingCall = false;
+                this.showToast('Accepting call...', 'primary');
+                break;
+            case 'connecting':
+                this.hasIncomingCall = false;
+                this.showToast('Connecting to call...', 'primary');
+                break;
+            case 'connected':
+                this.startCallTimer();
+                this.hasIncomingCall = false;
+                this.incomingCallMessage = '';
+                this.showToast('Call connected successfully!', 'success');
+                this.setupMediaElements();
+                break;
+            case 'disconnected':
+            case 'failed':
+            case 'ended':
+                this.clearTimer();
+                this.hasIncomingCall = false;
+                this.incomingCallMessage = '';
+                const message = state === 'failed' ? 'Call connection failed' : 'Call ended';
+                this.showToast(message, state === 'failed' ? 'danger' : 'warning');
+                setTimeout(() => {
+                    if (!this.isDestroyed) {
+                        this.router.navigate(['/counsellor-dashboard']);
+                    }
+                }, 1500);
+                break;
+        }
     });
 
     this.subscriptions.push(callStateSub);
-  }
+}
 
   private setupMessageSubscription() {
     const messageSub = this.webrtcService.getMessageObservable().subscribe((message: any) => {
-      console.log('Received message in CounsellorCallComponent:', message);
-      if (message.type === 'call_initiated') {
-        this.hasIncomingCall = true;
-        this.clientInfo = message.user_name ? { name: message.user_name } : this.clientInfo;
-        this.incomingCallMessage = `Incoming call from ${this.clientInfo.name || 'Client'}`;
-        console.log(`Incoming call for booking ${message.booking_id}, client: ${this.clientInfo.name || 'Client'}`);
-        this.showToast(this.incomingCallMessage, 'primary');
-        const bookingIdFromMessage = parseInt(message.booking_id, 10);
-        if (!this.bookingId && bookingIdFromMessage && !isNaN(bookingIdFromMessage)) {
-          this.bookingId = bookingIdFromMessage;
-          this.initializeWebSocket(this.bookingId);
-          this.loadBookingDetails();
+        console.log('Received message in CounsellorCallComponent:', message);
+        
+        if (message.type === 'call_initiated') {
+            this.hasIncomingCall = true;
+            this.clientInfo = message.user_name ? { name: message.user_name } : this.clientInfo;
+            this.incomingCallMessage = `Incoming call from ${this.clientInfo.name || 'Client'}`;
+            console.log(`Incoming call for booking ${message.booking_id}, client: ${this.clientInfo.name || 'Client'}`);
+            this.showToast(this.incomingCallMessage, 'primary');
+            
+            const bookingIdFromMessage = parseInt(message.booking_id, 10);
+            if (!this.bookingId && bookingIdFromMessage && !isNaN(bookingIdFromMessage)) {
+                this.bookingId = bookingIdFromMessage;
+                this.loadBookingDetails();
+            }
+        } else if (message.type === 'call_accepted') {
+            // This is received by the user when counsellor accepts
+            this.hasIncomingCall = false;
+            this.incomingCallMessage = '';
+            this.callState = 'connecting';
+            this.showToast('Call accepted by counsellor', 'success');
+        } else if (message.type === 'call_ended' || message.type === 'call_rejected') {
+            this.hasIncomingCall = false;
+            this.incomingCallMessage = '';
+            this.clearTimer();
+            const message_text = message.type === 'call_rejected' ? 'Call was rejected' : 'Call ended';
+            this.showToast(message_text, 'warning');
+            setTimeout(() => {
+                if (!this.isDestroyed) {
+                    this.router.navigate(['/counsellor-dashboard']);
+                }
+            }, 1500);
         }
-      } else if (message.type === 'call_accepted') {
-        this.hasIncomingCall = false;
-        this.incomingCallMessage = '';
-        this.showToast('Call accepted', 'success');
-      } else if (message.type === 'call_ended' || message.type === 'call_rejected') {
-        this.hasIncomingCall = false;
-        this.incomingCallMessage = '';
-        this.router.navigate(['/counsellor-dashboard']);
-      }
-      this.webrtcService.handleMessage(message);
+        
+        // Always let WebRTC service handle the message
+        this.webrtcService.handleMessage(message);
     });
 
     this.subscriptions.push(messageSub);
-  }
+}
 
   private setupMediaElements(retryCount = 0, maxRetries = 5) {
     if (this.isDestroyed || retryCount >= maxRetries) {
@@ -379,7 +401,7 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
   }
 }
 
- async acceptCall() {
+  async acceptCall() {
     if (this.bookingId === undefined) {
         console.error('Booking ID is undefined in acceptCall');
         this.showToast('Invalid booking ID', 'danger');
@@ -393,28 +415,47 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
             'Authorization': `Bearer ${localStorage.getItem('access_token') ?? ''}`
         });
 
-        const acceptSub = this.http.post(`${environment.apiUrl}/api/call/accept/`, 
+        // First, call the API to accept the call
+        const acceptSub = this.http.post(`${environment.apiUrl}/api/counsellor/accept/`, 
             { booking_id: this.bookingId }, 
             { headers }
         ).subscribe({
             next: async (response: any) => {
                 console.log('Accept call API response:', response);
+                
+                // Clear the incoming call state immediately
+                this.hasIncomingCall = false;
+                this.incomingCallMessage = '';
+                this.callState = 'connecting';
+                this.showToast('Call accepted, connecting...', 'success');
+                
+                // Small delay to ensure API processing is complete
                 setTimeout(async () => {
                     try {
-                        await this.webrtcService.acceptIncomingCall(this.bookingId!, { audio: true, video: false });
-                        console.log('WebRTC call accepted, peer state:', this.webrtcService['peerConnection']?.signalingState);
-                        this.hasIncomingCall = false;
-                        this.incomingCallMessage = '';
-                        this.showToast('Call accepted', 'success');
+                        // Now initialize the WebRTC connection
+                        await this.webrtcService.acceptIncomingCall(
+                            this.bookingId!, 
+                            { audio: true, video: false }
+                        );
+                        
+                        console.log('WebRTC call accepted successfully');
+                        
+                        // Setup media elements after accepting
+                        setTimeout(() => {
+                            this.setupMediaElements();
+                        }, 1000);
+                        
                     } catch (webrtcError) {
                         console.error('WebRTC accept error:', webrtcError);
                         this.showToast('Failed to establish call connection', 'danger');
+                        this.callState = 'failed';
                     }
-                }, 500);
+                }, 1000);
             },
             error: (error) => {
-                console.error('Accept call API error:', error, 'Status:', error.status, 'Response:', error.error);
+                console.error('Accept call API error:', error);
                 this.showToast('Failed to accept call: ' + (error.error?.error || 'Unknown error'), 'danger');
+                this.callState = 'failed';
             }
         });
 
@@ -422,8 +463,10 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
     } catch (error) {
         console.error('Error in acceptCall:', error);
         this.showToast('Failed to accept call', 'danger');
+        this.callState = 'failed';
     }
 }
+
 
   rejectCall() {
     this.webrtcService.rejectCall();
@@ -582,10 +625,10 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
     return this.clientInfo?.name || this.clientInfo?.username || 'Client';
   }
 
-  get clientAvatar(): string {
-    return this.clientInfo?.profile_picture || this.clientInfo?.avatar || 'assets/images/default-avatar.png';
-  }
-  onImageError(event: Event) {
-    (event.target as HTMLImageElement).src = 'assets/images/default-avatar.png';
-  }
+  // get clientAvatar(): string {
+  //   return this.clientInfo?.profile_picture || this.clientInfo?.avatar || 'assets/images/default-avatar.png';
+  // }
+  // onImageError(event: Event) {
+  //   (event.target as HTMLImageElement).src = 'assets/images/default-avatar.png';
+  // }
 }

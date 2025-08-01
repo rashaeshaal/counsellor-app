@@ -39,7 +39,7 @@ export class UserDashboardComponent  implements OnInit {
   }
 
   async loadCounsellors() {
-    this.http.get(`${environment.apiUrl}/api/counsellors/`).subscribe({
+    this.http.get(`${environment.apiUrl}/api/dashboard/counsellors/`).subscribe({
       next: (response: any) => {
         console.log('UserDashboard counsellors response:', response);
         this.counsellors = response;
