@@ -1,0 +1,71 @@
+<ion-content class="ion-padding content-bg">
+  <!-- Loading Spinner -->
+  <ion-spinner *ngIf="isLoading" name="crescent" class="loading-spinner"></ion-spinner>
+  
+  <!-- Error Message -->
+  <ion-alert
+    *ngIf="errorMessage"
+    [message]="errorMessage"
+    header="Error"
+    [buttons]="['OK']"
+    class="alert-danger"
+  ></ion-alert>
+  
+  <!-- Success Message -->
+  <ion-toast
+    *ngIf="successMessage"
+    [message]="successMessage"
+    [duration]="3000"
+    color="success"
+    position="top"
+  ></ion-toast>
+  
+  <!-- Available Problems -->
+  <h2 class="section-title">Available Problems</h2>
+  <ion-list class="problems-list">
+    <ion-card *ngFor="let problem of problems" class="problem-card">
+      <ion-card-header>
+        <ion-card-title class="card-title">{{ problem.title }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="card-description">{{ problem.description || 'No description available' }}</p>
+        <img *ngIf="problem.image" 
+             [src]="'http://localhost:8000/' + problem.image" 
+             [alt]="problem.title" 
+             class="problem-image" />
+        <ion-button
+          (click)="selectProblem(problem.id)"
+          [disabled]="isSelected(problem.id)"
+          [color]="isSelected(problem.id) ? 'medium' : 'primary'"
+          expand="block"
+          class="select-button"
+        >
+          {{ isSelected(problem.id) ? 'Selected' : 'Select Problem' }}
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </ion-list>
+  
+  <!-- Selected Problems -->
+  <h2 class="section-title selected-section">Your Selected Problems</h2>
+  <ion-list class="problems-list">
+    <ion-card *ngIf="userProblems.length === 0" class="empty-card">
+      <ion-card-content>
+        <p class="empty-message">No problems selected yet.</p>
+      </ion-card-content>
+    </ion-card>
+    <ion-card *ngFor="let userProblem of userProblems" class="selected-problem-card">
+      <ion-card-header>
+        <ion-card-title class="card-title">{{ userProblem.problem.title }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="card-description">{{ userProblem.problem.description || 'No description available' }}</p>
+        <img *ngIf="userProblem.problem.image" 
+             [src]="'http://localhost:8000/' + userProblem.problem.image" 
+             [alt]="userProblem.problem.title" 
+             class="problem-image" />
+        <p class="selected-date">Selected on: {{ userProblem.selected_at | date:'medium' }}</p>
+      </ion-card-content>
+    </ion-card>
+  </ion-list>
+</ion-content>

@@ -476,16 +476,24 @@ export class WebrtcService {
         await this.peerConnection!.setRemoteDescription(new RTCSessionDescription(message.offer));
         console.log('Remote description set successfully');
         
-        // Ensure we have local stream
+        // Ensure we have local stream and add tracks if not already added
         if (!this.localStream) {
             console.log('No local stream, getting user media...');
             this.localStream = await navigator.mediaDevices.getUserMedia(this.currentMediaConstraints);
             this.localStreamSubject.next(this.localStream);
             
             this.localStream.getTracks().forEach(track => {
-                if (this.peerConnection && this.localStream) {
+                if (this.peerConnection && this.localStream && !this.peerConnection.getSenders().some(sender => sender.track === track)) {
                     console.log('Adding track for answer:', track.kind);
                     this.peerConnection.addTrack(track, this.localStream);
+                }
+            });
+        } else {
+            // Ensure all local tracks are added to the peer connection
+            this.localStream.getTracks().forEach(track => {
+                if (this.peerConnection && !this.peerConnection.getSenders().some(sender => sender.track === track)) {
+                    console.log('Adding existing local track to peer connection:', track.kind);
+                    this.peerConnection.addTrack(track, this.localStream!);
                 }
             });
         }

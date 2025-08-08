@@ -1,4 +1,6 @@
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { getAuth, signInWithPhoneNumber as angularFireSignInWithPhoneNumber, Auth, ConfirmationResult } from '@angular/fire/auth';
 import { RecaptchaVerifier } from '@angular/fire/auth';
@@ -18,9 +20,10 @@ declare global {
 export class AuthService {
 
   private verificationId: string | null = null; // Stores the verification ID received from Firebase
-  private confirmationResult: ConfirmationResult | null = null; // Stores the ConfirmationResult for web flow
+  private confirmationResult: ConfirmationResult | null = null; 
+  private bpiUrl = 'http://localhost:8000'; 
 
-  constructor(private auth: Auth) {
+  constructor(private auth: Auth, private http: HttpClient) {
     // Ensure Firebase app is initialized before attempting any auth operations
     try {
       getApp(); // This will throw an error if no Firebase app has been initialized
@@ -121,5 +124,11 @@ export class AuthService {
   clearVerificationId(): void {
     this.verificationId = null;
     this.confirmationResult = null;
+  }
+
+  updateUserProfile(userDetails: any): Observable<any> {
+    const token = this.getToken();
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.post(`${this.bpiUrl}/api/auth/register-user/`, userDetails, { headers });
   }
 }

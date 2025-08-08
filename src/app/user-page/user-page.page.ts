@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { ModalController, ModalOptions, ToastController } from '@ionic/angular';
+import { FormControl, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ModalController, ModalOptions, ToastController, IonicModule } from '@ionic/angular';
 import { AuthService } from '../services/auth.service';
 import { OtpComponent } from './otp/otp.component';
 import { Auth, RecaptchaVerifier } from '@angular/fire/auth';
@@ -8,6 +8,8 @@ import { environment } from 'src/environments/environment';
 import { getFirestore, doc, getDoc, setDoc, increment } from 'firebase/firestore';
 import { getApp } from 'firebase/app';
 import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+
 @Component({
   selector: 'app-user-page',
   templateUrl: './user-page.page.html',
@@ -28,6 +30,7 @@ export class UserPagePage implements OnInit {
   isTestMode: boolean = !environment.production;
   testPhoneNumbers: { [key: string]: string } = {
     '+917510780558': '789654',
+    '+918547905362': '123456',
   };
 
   private recaptchaVerifier!: RecaptchaVerifier;
@@ -110,7 +113,7 @@ export class UserPagePage implements OnInit {
       if (data?.success) {
         this.form.reset();
         console.log('Login successful, navigating to user-dashboard');
-        this.router.navigate(['/user-dashboard']);
+        this.router.navigate(['/problem-selection']);
       }
     } catch (e: any) {
       console.error('Sign-in error:', e);

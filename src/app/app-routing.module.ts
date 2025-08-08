@@ -15,7 +15,8 @@ import { CounsellorPaymentSettingsComponent } from './counsellor-payment-setting
 import { CounsellorLoginComponent } from './counsellor/counsellor-login/counsellor-login.component';
 import { CallComponent } from './user-dashboard/call/call.component';
 import { WalletComponent } from './wallet/wallet.component';
-
+import { ProblemSelectionComponent } from './problem-selection/problem-selection.component';
+import { UserRegistrationComponent } from './user-page/user-registration/user-registration.component';
 const routes: Routes = [
   {
     path: '',
@@ -38,7 +39,9 @@ const routes: Routes = [
   { path: 'counsellor-payment-settings', component: CounsellorPaymentSettingsComponent },
   { path: 'counsellor-login', component: CounsellorLoginComponent },
   { path: 'call', component: CallComponent },
-  { path: 'wallet', component: WalletComponent }
+  { path: 'wallet', component: WalletComponent },
+  { path: 'problem-selection', component: ProblemSelectionComponent },
+  { path: 'user-registeration', component: UserRegistrationComponent }
   
 ];
 

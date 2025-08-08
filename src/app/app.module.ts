@@ -29,7 +29,6 @@ import { UserNotificationsComponent } from './components/user-notifications/user
 import { UserDashboardComponent } from './components/user-dashboard/user-dashboard.component';
 import { CounsellorPaymentSettingsComponent } from './counsellor-payment-settings/counsellor-payment-settings.component';
 import { CheckoutComponent } from './checkout/checkout.component';
-import {  provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpRequest, HttpHandlerFn, HttpEvent } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthInterceptor } from './auth.interceptor';
@@ -37,6 +36,8 @@ import { CounsellorLoginComponent } from './counsellor/counsellor-login/counsell
 import { CallComponent } from './user-dashboard/call/call.component';
 import { AuthService } from './services/auth.service';
 import { CounsellorRegisterComponent } from './counsellor/counsellor-register/counsellor-register.component';
+import { ProblemSelectionComponent } from './problem-selection/problem-selection.component';
+import { UserRegistrationComponent } from './user-page/user-registration/user-registration.component';
 export function authInterceptor() {
   return (req: HttpRequest<any>, next: HttpHandlerFn): Observable<HttpEvent<any>> => {
     const accessToken = localStorage.getItem('access_token');
@@ -82,9 +83,9 @@ let appInjector: Injector;
     CounsellorLoginComponent, // Ensure this component is declared
     CounsellorDashboardComponent, // Ensure this component is declared
     CounsellorProfileComponent, // Ensure this component is declared
-    CounsellorNotificationsComponent, // Ensure this component is declared
-    
-  ],
+    CounsellorNotificationsComponent,
+    UserRegistrationComponent
+    ],
   imports: [
     BrowserModule,
     IonicModule.forRoot(),
@@ -94,9 +95,8 @@ let appInjector: Injector;
     NgOtpInputModule,
     HttpClientModule,
     CommonModule,
-    SocketIoModule
-    
-
+    SocketIoModule,
+    ProblemSelectionComponent
   ],
   providers: [
     AuthService,

@@ -98,7 +98,11 @@ export class OtpComponent  implements OnInit {
       this.showToast('Login successful');
       this.auth.clearVerificationId();
       await this.modalCtrl.dismiss({ success: true });
-      this.router.navigate(['/user-dashboard']);
+      if (response.is_new_user) {
+        this.router.navigate(['/user-page/user-registration']);
+      } else {
+        this.router.navigate(['/problem-selection']);
+      }
     } catch (e: any) {
       await this.hideLoader();
       this.showToast(e.message || 'Invalid OTP or server error', 'danger');
