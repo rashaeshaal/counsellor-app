@@ -1,162 +1,100 @@
-<ion-header [translucent]="true">
-  <ion-toolbar class="custom-header">
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/user-dashboard" color="light" class="back-btn"></ion-back-button>
-    </ion-buttons>
-    <ion-title class="header-title">Checkout</ion-title>
-    <ion-buttons slot="end">
-      <ion-button fill="clear" color="light">
-        <ion-icon name="help-circle-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<ion-page>
+<ion-content class="bg-white" style='font-family: Lexend, "Noto Sans", sans-serif;'>
+  <div class="container">
+    <div class="bg-decoration">
+      <div class="floating-shape shape-1"></div>
+      <div class="floating-shape shape-2"></div>
+      <div class="floating-shape shape-3"></div>
+    </div>
+    <div class="relative z-10">
+    
+  <div>
+    <!-- Header -->
+    <div class="flex items-center bg-white p-4 pb-2 justify-between">
+      <div class="text-[#111817] flex size-12 shrink-0 items-center cursor-pointer" (click)="goToDashboard()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+          <path
+            d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"
+          ></path>
+        </svg>
+      </div>
+      <h2
+        class="text-[#111817] text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12"
+      >
+        Checkout
+      </h2>
+    </div>
 
-<ion-content [fullscreen]="true" class="checkout-content">
-  <div class="content-wrapper">
-    <!-- Hero Section -->
-    <div class="hero-section">
-      <div class="hero-gradient"></div>
-      <div class="hero-content">
-        <div class="counsellor-avatar">
-          <img [src]="counsellor.profile_image || 'assets/default-avatar.png'" alt="Counsellor">
-          <div class="status-badge" [class.active]="counsellor.is_active">
-            <ion-icon name="checkmark"></ion-icon>
-          </div>
+    <!-- Session Details -->
+    <h3 class="text-[#111817] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">
+      Session Details 
+    </h3>
+    <div class="flex items-center gap-4 bg-white px-4 min-h-[72px] py-2">
+      <div class="w-28 h-28 rounded-full overflow-hidden mb-6 border-4 border-white shadow-lg">
+        <img alt="Counselor Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDk3XctobyavS7LKd4tCF05DAOjgZUYoCe0vwKo7xaTOKJy_YbQm063Zi8trlhzaJLCyOFRfbaHmMt7TOT1LVW1YH7qKln55wa7mh13O8UVaK5Csf2MIJdHNk9MZJPDnDzIkDq2cezdac1lJoVNjGGabl67DrOJSwFsuYqJjeRa13d0Yc5tqkblmPuKETkSYqCgAO7eBtG3mCPkPw20Rt7PpqBjGKwpvNlRRv7-WDC4puIeKkfchF-20M8qLrS7Xrgjyt01TFbSjFM"/>
         </div>
-        <h1 class="counsellor-name">{{ counsellor.name || 'Professional Counsellor' }}</h1>
-        <p class="counsellor-title">{{ counsellor.qualification || 'Licensed Therapist' }}</p>
-        <div class="rating-section">
-          <div class="stars">
-            <ion-icon name="star" class="star filled"></ion-icon>
-            <ion-icon name="star" class="star filled"></ion-icon>
-            <ion-icon name="star" class="star filled"></ion-icon>
-            <ion-icon name="star" class="star filled"></ion-icon>
-            <ion-icon name="star" class="star"></ion-icon>
-          </div>
-          <span class="rating-text">4.8 (128 reviews)</span>
-        </div>
+      <div class="flex flex-col justify-center">
+        <p class="text-[#111817] text-base font-medium leading-normal line-clamp-1">
+          {{ paymentSettings?.counsellor_name || counsellor.name }}
+        </p>
+        <p class="text-[#618985] text-sm font-normal leading-normal line-clamp-2">
+          {{ counsellor.specialization ?? '' }}
+        </p>
+      </div>
+    </div>
+    <div class="p-4 grid grid-cols-[20%_1fr] gap-x-6">
+      <div class="col-span-2 grid grid-cols-subgrid border-t border-t-[#dbe6e5] py-5">
+        <p class="text-[#618985] text-sm font-normal leading-normal">Date</p>
+        <p class="text-[#111817] text-sm font-normal leading-normal">{{ sessionDate }}</p>
+      </div>
+      <div class="col-span-2 grid grid-cols-subgrid border-t border-t-[#dbe6e5] py-5">
+        <p class="text-[#618985] text-sm font-normal leading-normal">Time</p>
+        <p class="text-[#111817] text-sm font-normal leading-normal">{{ sessionTime }}</p>
+      </div>
+      <div class="col-span-2 grid grid-cols-subgrid border-t border-t-[#dbe6e5] py-5">
+        <p class="text-[#618985] text-sm font-normal leading-normal">Duration</p>
+        <p class="text-[#111817] text-sm font-normal leading-normal">{{ sessionDuration }} mins</p>
+      </div>
+      <div class="col-span-2 grid grid-cols-subgrid border-t border-t-[#dbe6e5] py-5">
+        <p class="text-[#618985] text-sm font-normal leading-normal">Price</p>
+        <p class="text-[#111817] text-sm font-normal leading-normal">{{ sessionPrice || counsellor.price | currency }}</p>
       </div>
     </div>
 
-    <!-- Session Details Card -->
-    <div class="details-card">
-      <div class="card-header">
-        <h2>Session Details</h2>
-        <ion-chip color="primary" class="session-chip">
-          <ion-icon name="videocam" slot="start"></ion-icon>
-          <ion-label>Video Call</ion-label>
-        </ion-chip>
-      </div>
-      
-      <div class="details-grid">
-        <div class="detail-item">
-          <div class="detail-icon">
-            <ion-icon name="time-outline"></ion-icon>
-          </div>
-          <div class="detail-content">
-            <span class="detail-label">Duration</span>
-            <span class="detail-value">{{ counsellor.payment_settings?.session_duration || 20 }} mins</span>
-          </div>
+    <!-- Payment Method -->
+    <h3 class="text-[#111817] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">
+      Payment Method
+    </h3>
+    <div class="flex items-center gap-4 bg-white px-4 min-h-[72px] py-2 justify-between">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2">
+          <ion-icon name="card-outline" class="text-[#0e9588] text-2xl" aria-label="Credit/Debit Card"></ion-icon>
+          <ion-icon name="wallet-outline" class="text-[#0e9588] text-2xl" aria-label="UPI/Wallet"></ion-icon>
         </div>
-        
-        <div class="detail-item">
-          <div class="detail-icon">
-            <ion-icon name="calendar-outline"></ion-icon>
-          </div>
-          <div class="detail-content">
-            <span class="detail-label">Experience</span>
-            <span class="detail-value">{{ counsellor.experience || 0 }} years</span>
-          </div>
-        </div>
-        
-        <div class="detail-item">
-          <div class="detail-icon">
-            <ion-icon name="shield-checkmark-outline"></ion-icon>
-          </div>
-          <div class="detail-content">
-            <span class="detail-label">Availability</span>
-            <span class="detail-value status" [class.active]="counsellor.is_active">
-              {{ counsellor.is_active ? 'Available Now' : 'Offline' }}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Pricing Card -->
-    <div class="pricing-card">
-      <div class="pricing-header">
-        <h3>Session Fee</h3>
-        <div class="price-tag">
-          <span class="currency">₹</span>
-          <span class="amount">{{ counsellor.payment_settings?.session_fee || 50 }}</span>
-          <span class="period">/session</span>
-        </div>
-      </div>
-      
-      <div class="pricing-features">
-        <div class="feature">
-          <ion-icon name="checkmark-circle" color="success"></ion-icon>
-          <span>1-on-1 Video Session</span>
-        </div>
-        <div class="feature">
-          <ion-icon name="checkmark-circle" color="success"></ion-icon>
-          <span>Session Recording Available</span>
-        </div>
-        <div class="feature">
-          <ion-icon name="checkmark-circle" color="success"></ion-icon>
-          <span>24/7 Chat Support</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Payment Methods -->
-    <div class="payment-methods">
-      <h3>Payment Methods</h3>
-      <div class="payment-options">
-        <div class="payment-option active">
-          <ion-icon name="card-outline"></ion-icon>
-          <span>Credit/Debit Card</span>
-          <ion-icon name="checkmark-circle" class="check"></ion-icon>
-        </div>
-        <div class="payment-option">
-          <ion-icon name="wallet-outline"></ion-icon>
-          <span>Digital Wallet</span>
-        </div>
-        <div class="payment-option">
-          <ion-icon name="phone-portrait-outline"></ion-icon>
-          <span>UPI Payment</span>
+        <div class="flex flex-col justify-center">
+          <p class="text-[#111817] text-base font-medium leading-normal line-clamp-1">
+            Credit Card / UPI
+          </p>
+          <p class="text-[#618985] text-sm font-normal leading-normal line-clamp-2">
+            .... 4242
+          </p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Floating Payment Button -->
-  <div class="floating-payment">
-    <ion-button 
-      expand="block" 
-      size="large"
-      class="pay-button"
-      (click)="initiatePayment()">
-      <div class="button-content">
-        <div class="payment-info">
-          <span class="pay-text">Proceed to Pay</span>
-          <span class="pay-amount">₹{{ counsellor.payment_settings?.session_fee || 50 }}</span>
-        </div>
-        <ion-icon name="arrow-forward" class="pay-arrow"></ion-icon>
-      </div>
-    </ion-button>
+  <!-- Confirm Button -->
+  <div>
+    <div class="flex px-4 py-3">
+      <button
+        class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-5 flex-1 bg-[#0e9588] text-white text-base font-bold leading-normal tracking-[0.015em]"
+        (click)="initiatePayment()"
+      >
+        <span class="truncate">Confirm Booking</span>
+      </button>
+    </div>
   </div>
-  <div *ngIf="counsellor.id">
-  <h2>Checkout for {{ counsellor.name }}</h2>
-  <button (click)="initiatePayment()">Proceed to Payment</button>
-  <!-- Video elements for WebRTC (optional for testing) -->
-  <video id="localVideo" autoplay muted></video>
-  <video id="remoteVideo" autoplay></video>
-</div>
-<div *ngIf="!counsellor.id">
-  <p>Invalid counsellor selection. Please try again.</p>
-</div>
+  </div>
+  </div>
 </ion-content>
-<app-home-footer></app-home-footer>
+</ion-page>

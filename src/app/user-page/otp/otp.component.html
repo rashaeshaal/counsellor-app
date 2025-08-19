@@ -1,38 +1,128 @@
-<ion-content [fullscreen]="true">
-  <ion-button fill="clear" class="ion-margin" (click)="modalCtrl.dismiss()">
-    <ion-icon name="arrow-back" slot="icon-only" color="white"></ion-icon>
-  </ion-button>
-</ion-content>
+<div class="container">
+  <!-- Background decorations -->
+  <div class="bg-decoration">
+    <div class="floating-element element-1"></div>
+    <div class="floating-element element-2"></div>
+    <div class="floating-element element-3"></div>
+  </div>
 
-<ion-footer class="ion-no-border">
-  <ion-list lines="none">
-    <ion-list-header class="ion-margin">
-      <ion-label>Code Verification</ion-label>
-    </ion-list-header>
+  <div>
+    <!-- Header -->
+    <div class="header">
+      <div class="back-button" (click)="modalCtrl.dismiss()">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24px"
+          height="24px"
+          fill="currentColor"
+          viewBox="0 0 256 256"
+        >
+          <path
+            d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"
+          ></path>
+        </svg>
+      </div>
+      <h2 class="header-title">Verify OTP</h2>
+    </div>
 
-    <ion-item class="ion-margin" lines="none">
-      <ion-label>
-        Enter Verification Code
-        <div class="ion-padding-top" align="center">
-          <ng-otp-input
-            (onInputChange)="onOtpChange($event)"
-            [config]="config"
-          ></ng-otp-input>
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="content-wrapper">
+        <!-- Security Icon -->
+        <div class="illustration-container">
+          <div class="security-icon">
+            <svg fill="currentColor" viewBox="0 0 24 24">
+              <path
+                d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11.5C15.4,11.5 16,12.4 16,13V16C16,17.4 15.4,18 14.8,18H9.2C8.6,18 8,17.4 8,16V13C8,12.4 8.6,11.5 9.2,11.5V10C9.2,8.6 10.6,7 12,7M12,8.2C11.2,8.2 10.5,8.7 10.5,10V11.5H13.5V10C13.5,8.7 12.8,8.2 12,8.2Z"
+              />
+            </svg>
+          </div>
+
+          <div class="verification-text">
+            <h1 class="main-title">Enter Verification Code</h1>
+            <p class="subtitle">
+              We've sent a 6-digit code to your mobile number. Please enter it
+              below to verify your identity.
+            </p>
+          </div>
         </div>
-      </ion-label>
-    </ion-item>
 
-    <ion-text *ngIf="isTestMode && testOtp" color="warning" class="ion-margin">
-      <p>Test OTP: {{ testOtp }}</p>
-    </ion-text>
+        <!-- OTP Input -->
+        <div class="otp-container">
+          <fieldset class="otp-fieldset">
+            <input
+              #otp1
+              type="text"
+              maxlength="1"
+              class="otp-input"
+              (input)="onInput(otp1, otp2)"
+              (keydown.backspace)="onBackspace(otp1, null)"
+            />
+            <input
+              #otp2
+              type="text"
+              maxlength="1"
+              class="otp-input"
+              (input)="onInput(otp2, otp3)"
+              (keydown.backspace)="onBackspace(otp2, otp1)"
+            />
+            <input
+              #otp3
+              type="text"
+              maxlength="1"
+              class="otp-input"
+              (input)="onInput(otp3, otp4)"
+              (keydown.backspace)="onBackspace(otp3, otp2)"
+            />
+            <input
+              #otp4
+              type="text"
+              maxlength="1"
+              class="otp-input"
+              (input)="onInput(otp4, otp5)"
+              (keydown.backspace)="onBackspace(otp4, otp3)"
+            />
+            <input
+              #otp5
+              type="text"
+              maxlength="1"
+              class="otp-input"
+              (input)="onInput(otp5, otp6)"
+              (keydown.backspace)="onBackspace(otp5, otp4)"
+            />
+            <input
+              #otp6
+              type="text"
+              maxlength="1"
+              class="otp-input"
+              (input)="onInput(otp6, null)"
+              (keydown.backspace)="onBackspace(otp6, otp5)"
+            />
+          </fieldset>
 
-    <ion-item lines="none" class="ion-margin-horizontal">
-      <ion-button fill="clear" color="primary" slot="start" (click)="resend()">
-        RESEND OTP
-      </ion-button>
-      <ion-fab-button slot="end" color="danger" (click)="verifyOtp()">
-        <ion-icon name="arrow-forward-outline"></ion-icon>
-      </ion-fab-button>
-    </ion-item>
-  </ion-list>
-</ion-footer>
+          <!-- Resend OTP -->
+          <div class="resend-container">
+            <p class="resend-text" (click)="resend()">
+              Didn't receive the code? Resend OTP
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div>
+    <div class="button-container" style="padding: 0 1rem;">
+      <button
+        id="continueButton"
+        (click)="verifyOtp()"
+        [disabled]="isLoading || !isOtpComplete()"
+        class="continue-button"
+      >
+        <span *ngIf="isLoading" class="loading-spinner"></span>
+        <span id="buttonText">{{ isLoading ? 'Please wait...' : 'Continue' }}</span>
+      </button>
+    </div>
+  </div>
+</div>

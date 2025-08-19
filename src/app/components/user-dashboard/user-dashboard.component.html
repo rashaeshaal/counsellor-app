@@ -1,95 +1,158 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-title></ion-title> 
-    <ion-buttons slot="end">
-      <ion-button fill="clear" color="light"> 
-        <ion-icon name="notifications-outline" size="large"></ion-icon> 
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="ion-padding user-content">
-  <div class="welcome-section">
-    <ion-avatar class="user-avatar">
-      <img src="https://via.placeholder.com/90x90/4CAF50/FFFFFF?text=U" alt="User Avatar">
-    </ion-avatar>
-    <h2 class="welcome-text">Welcome, {{ user?.name || 'Guest' }}!</h2>
-    <p class="welcome-subtitle">Your journey to well-being starts here.</p>
+<ion-page>
+<ion-content class="bg-white">
+<div class="container">
+  <div class="bg-decoration">
+    <div class="floating-shape shape-1"></div>
+    <div class="floating-shape shape-2"></div>
+    <div class="floating-shape shape-3"></div>
   </div>
 
-  <div class="stats-container">
-    <ion-card class="stat-card">
-      <ion-card-content>
-        <ion-icon name="people-outline" class="stat-icon"></ion-icon>
-        <h3>{{ counsellors.length || 0 }}</h3>
-        <p>Expert Counsellors</p>
-      </ion-card-content>
-    </ion-card>
-    <ion-card class="stat-card">
-      <ion-card-content>
-        <ion-icon name="calendar-outline" class="stat-icon"></ion-icon>
-        <h3>Available 24/7</h3>
-        <p>On-Demand Support</p>
-      </ion-card-content>
-    </ion-card>
+  <div class="header">
+    <div class="back-button" (click)="goHome()">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24px"
+        height="24px"
+        fill="currentColor"
+        viewBox="0 0 256 256"
+      >
+        <path
+          d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"
+        ></path>
+      </svg>
+    </div>
+    <h2 class="header-title">Connect Your Counsellor</h2>
   </div>
 
-  <div class="section-header">
-    <h3>Meet Our Counsellors</h3>
-    <ion-button fill="clear" size="small" color="primary">
-      View All <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
-    </ion-button>
+  <div class="search-section">
+    <div class="search-container">
+      <div class="search-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+          />
+        </svg>
+      </div>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search counsellors by name"
+        [(ngModel)]="searchQuery"
+        (input)="handleSearch()"
+      />
+    </div>
   </div>
 
-  <div class="counsellors-container">
-    <ion-card *ngFor="let counsellor of counsellors" class="counsellor-card">
-      <ion-card-content>
-        <div class="counsellor-header">
-          <div class="counsellor-avatar-container">
-            <ion-avatar class="counsellor-avatar">
-              <img [src]="counsellor.profile_photo || 'https://via.placeholder.com/70x70/2196F3/FFFFFF?text=' + counsellor.name.charAt(0)" 
-                   [alt]="counsellor.name">
-            </ion-avatar>
-            <div class="status-indicator" [class.active]="counsellor.is_active"></div>
-          </div>
-          
+  <div class="main-content">
+    <div class="counsellors-list" *ngIf="filteredCounsellors.length; else emptyState">
+      <div *ngFor="let counsellor of filteredCounsellors" class="counsellor-card">
+        <div class="card-content">
           <div class="counsellor-info">
-            <h3 class="counsellor-name">{{ counsellor.name }}</h3>
-            <p class="counsellor-qualification">{{ counsellor.qualification }}</p>
-            <div class="counsellor-meta">
-              <span class="experience">
-                <ion-icon name="briefcase-outline"></ion-icon>
-                {{ counsellor.experience }} years experience
-              </span>
-              <span>
-                <ion-icon name="star"></ion-icon>
-                4.9 (120 reviews)
-              </span>
+            <div class="counsellor-details">
+              <div
+                class="status-indicator"
+                [ngClass]="{
+                  'status-online': counsellor.is_active,
+                  'status-offline': !counsellor.is_active
+                }"
+              >
+                <div class="status-dot"></div>
+                <span>{{ counsellor.is_active ? 'Online' : 'Offline' }}</span>
+              </div>
+              <h3 class="counsellor-name">{{ counsellor.name }}</h3>
+              <p class="counsellor-specialty">
+                {{ counsellor.qualification || 'General Counseling' }}.
+                {{ counsellor.experience }} years of experience.
+              </p>
+              <div class="rating-container">
+                <div class="stars">
+                  <svg class="star" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                    />
+                  </svg>
+                  <svg class="star" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                    />
+                  </svg>
+                  <svg class="star" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                    />
+                  </svg>
+                  <svg class="star" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                    />
+                  </svg>
+                  <svg class="star" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="action-buttons">
+              <button
+                class="btn btn-secondary"
+                (click)="viewCounsellorProfile(counsellor)"
+              >
+                View Profile
+              </button>
+              <button
+                class="btn btn-primary"
+                (click)="bookCounsellor(counsellor)"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  viewBox="0 0 256 256"
+                >
+                  <path
+                    d="M222.37,158.46l-47.11-21.11-.13-.06a16,16,0,0,0-15.17,1.4,8.12,8.12,0,0,0-.75.56L134.87,160c-15.42-7.49-31.34-23.29-38.83-38.51l20.78-24.71c.2-.25.39-.50.57-.77a16,16,0,0,0,1.32-15.06l0-.12L97.54,33.64a16,16,0,0,0-16.62-9.52A56.26,56.26,0,0,0,32,80c0,79.4,64.6,144,144,144a56.26,56.26,0,0,0,55.88-48.92A16,16,0,0,0,222.37,158.46ZM176,208A128.14,128.14,0,0,1,48,80A40.2,40.2,0,0,1,82.87,40a.61.61,0,0,0,0,.12l21,47L83.2,111.86a6.13,6.13,0,0,0-.57.77,16,16,0,0,0-1,15.70c9.06,18.53,27.73,37.06,46.46,46.11a16,16,0,0,0,15.75-1.14,8.44,8.44,0,0,0,.74-.56L168.89,152l47,21.05h0s.08,0,.11,0A40.21,40.21,0,0,1,176,208Z"
+                  ></path>
+                </svg>
+                Call
+              </button>
+            </div>
+          </div>
+          <div class="profile-photo-container">
+            <div class="profile-photo">
+              <img *ngIf="counsellor.profile_photo" [src]="getProfilePhotoSrc(counsellor.profile_photo)" alt="Counsellor Profile Photo" class="counsellor-img">
+              <span *ngIf="!counsellor.profile_photo">{{
+                counsellor.name.charAt(0) | uppercase
+              }}</span>
             </div>
           </div>
         </div>
+      </div>
+    </div>
 
-        <div class="counsellor-details">
-          <div class="detail-item">
-            <ion-icon name="location-outline" class="detail-icon"></ion-icon>
-            <span>Online {{ counsellor.city || '' }}</span>
-          </div>
-          <div class="detail-item">
-            <ion-icon name="cash-outline" class="detail-icon"></ion-icon>
-            <span>₹{{ counsellor.payment_settings?.session_fee || 50 }}/session ({{ counsellor.payment_settings?.session_duration || 20 }} min)</span>
-          </div>
+    <ng-template #emptyState>
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"
+            />
+          </svg>
         </div>
-
-        <div class="counsellor-actions">
-          <ion-button expand="block" fill="solid" color="primary" (click)="bookCounsellor(counsellor)">
-            <ion-icon name="call-outline" slot="start"></ion-icon>
-            Call Now
-          </ion-button>
-        </div>
-      </ion-card-content>
-    </ion-card>
+        <p>No counsellors found matching your criteria.</p>
+      </div>
+    </ng-template>
   </div>
-</ion-content>
 
-<app-home-footer></app-home-footer>
+  
+</div>
+</ion-content>
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="p-0 m-0" style="--min-height: auto;">
+    <app-home-footer></app-home-footer>
+  </ion-toolbar>
+  <div class="h-5 bg-white"></div>
+</ion-footer>
+</ion-page>

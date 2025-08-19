@@ -29,6 +29,7 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
   callDuration: string = '00:00';
   hasIncomingCall: boolean = false;
   private isDestroyed = false;
+  private sessionDuration: number | null = null;
   
   private callStartTime?: Date;
   private timerInterval?: any;
@@ -176,6 +177,7 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
           if (!this.clientInfo.name) {
             this.clientInfo.name = response.user_name || 'Client';
           }
+          this.sessionDuration = response.session_duration;
         },
         error: (error) => {
           console.error('Failed to load booking details:', error);
@@ -297,8 +299,8 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
             const bookingIdFromMessage = parseInt(message.booking_id, 10);
             if (!this.bookingId && bookingIdFromMessage && !isNaN(bookingIdFromMessage)) {
                 this.bookingId = bookingIdFromMessage;
-                this.loadBookingDetails();
-            }
+
+              }
         } else if (message.type === 'call_accepted') {
             // This is received by the user when counsellor accepts
             this.hasIncomingCall = false;
@@ -385,7 +387,7 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
     ).subscribe({
       next: async (response: any) => {
         console.log('Call initiation response:', response);
-        await this.webrtcService.startCall(bookingId, { audio: true, video: false });
+        await this.webrtcService.startCall(bookingId, { audio: true, video: false }, undefined, this.sessionDuration ?? undefined);
         this.showToast('Call initiated', 'success');
       },
       error: (error) => {
@@ -416,41 +418,27 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
         });
 
         // First, call the API to accept the call
-        const acceptSub = this.http.post(`${environment.apiUrl}/api/counsellor/accept/`, 
-            { booking_id: this.bookingId }, 
+        const acceptSub = this.http.post(`${environment.apiUrl}/api/counsellor/accept/`,
+            { booking_id: this.bookingId },
             { headers }
         ).subscribe({
-            next: async (response: any) => {
+            next: (response: any) => {
                 console.log('Accept call API response:', response);
-                
+
                 // Clear the incoming call state immediately
                 this.hasIncomingCall = false;
                 this.incomingCallMessage = '';
                 this.callState = 'connecting';
                 this.showToast('Call accepted, connecting...', 'success');
-                
-                // Small delay to ensure API processing is complete
-                setTimeout(async () => {
-                    try {
-                        // Now initialize the WebRTC connection
-                        await this.webrtcService.acceptIncomingCall(
-                            this.bookingId!, 
-                            { audio: true, video: false }
-                        );
-                        
-                        console.log('WebRTC call accepted successfully');
-                        
-                        // Setup media elements after accepting
-                        setTimeout(() => {
-                            this.setupMediaElements();
-                        }, 1000);
-                        
-                    } catch (webrtcError) {
-                        console.error('WebRTC accept error:', webrtcError);
-                        this.showToast('Failed to establish call connection', 'danger');
-                        this.callState = 'failed';
-                    }
-                }, 1000);
+
+                console.log('Call accepted via API, now setting up WebRTC...');
+                // Call immediately
+                this.webrtcService.acceptIncomingCall(
+                    this.bookingId!,
+                    { audio: true, video: false },
+                    undefined,
+                    this.sessionDuration ?? undefined
+                );
             },
             error: (error) => {
                 console.error('Accept call API error:', error);
@@ -482,42 +470,11 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
         return;
     }
 
-    try {
-        // Call the EndCallView API
-        const headers = new HttpHeaders({
-            'Authorization': `Bearer ${localStorage.getItem('access_token') ?? ''}`
-        });
-
-        const endCallSub = this.http
-            .post(`${environment.apiUrl}/api/call/end/`, { booking_id: this.bookingId }, { headers })
-            .subscribe({
-                next: (response: any) => {
-                    console.log('End call response:', response);
-                    this.showToast('Call ended and funds transferred', 'success');
-                    this.webrtcService.endCall();
-                    this.clearTimer();
-                    this.hasIncomingCall = false;
-                    this.router.navigate(['/counsellor-dashboard']);
-                },
-                error: (error) => {
-                    console.error('Failed to end call and transfer funds:', error);
-                    this.showToast('Failed to end call and transfer funds', 'danger');
-                    this.webrtcService.endCall();
-                    this.clearTimer();
-                    this.hasIncomingCall = false;
-                    this.router.navigate(['/counsellor-dashboard']);
-                }
-            });
-
-        this.subscriptions.push(endCallSub);
-    } catch (error) {
-        console.error('Error ending call:', error);
-        this.showToast('Failed to end call', 'danger');
-        this.webrtcService.endCall();
-        this.clearTimer();
-        this.hasIncomingCall = false;
-        this.router.navigate(['/counsellor-dashboard']);
-    }
+    console.log('Counsellor ending call');
+    this.webrtcService.endCall();
+    this.clearTimer();
+    this.hasIncomingCall = false;
+    this.router.navigate(['/counsellor-dashboard']);
 }
 
 

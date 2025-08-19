@@ -12,11 +12,16 @@ import { environment } from 'src/environments/environment';
 export class CounsellorPaymentSettingsComponent  implements OnInit {
 
  paymentSettings: any = { session_fee: 50.00, session_duration: 20 };
+ userId: number | null = null;
 
   constructor(private http: HttpClient) {}
 
   ngOnInit() {
     this.loadPaymentSettings();
+    const storedUserId = localStorage.getItem('user_id');
+    if (storedUserId) {
+      this.userId = parseInt(storedUserId, 10);
+    }
   }
 
   async refreshToken(): Promise<string | null> {
@@ -75,9 +80,9 @@ export class CounsellorPaymentSettingsComponent  implements OnInit {
         'Content-Type': 'application/json',
         'X-CSRFToken': this.getCsrfToken()
       });
+      this.paymentSettings.user_id = this.userId;
       const response: any = await this.http
         .post(`${environment.apiUrl}/api/counsellor/payment-settings/`, this.paymentSettings, { headers })
-        .toPromise();
       console.log('Payment settings saved:', response);
       alert('Payment settings updated successfully.');
     } catch (error: any) {

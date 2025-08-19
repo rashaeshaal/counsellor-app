@@ -1,303 +1,59 @@
-/* Global Styles */
-ion-content {
-  --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --padding-top: 20px;
-  --padding-bottom: 20px;
+/* Background decorations */
+.bg-decoration {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
 }
 
-ion-header {
-  ion-toolbar {
-    --background: transparent;
-    --color: white;
-    --border-width: 0;
-    
-    ion-title {
-      font-weight: 600;
-      font-size: 1.2rem;
-      text-align: center;
-    }
-  }
+.floating-shape {
+  position: absolute;
+  opacity: 0.1;
+  animation: float 8s ease-in-out infinite;
 }
 
-/* Login Container */
-.login-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: 20px;
-  animation: fadeInUp 0.8s ease-out;
+.shape-1 {
+  width: 200px;
+  height: 200px;
+  background: linear-gradient(45deg, #14b8a6, #0d9488);
+  border-radius: 50%;
+  top: 10%;
+  left: -5%;
+  animation-delay: 0s;
 }
 
-/* Login Header */
-.login-header {
-  text-align: center;
-  margin-bottom: 30px;
-  color: white;
-  
-  .login-icon {
-    font-size: 80px;
-    color: rgba(255, 255, 255, 0.9);
-    margin-bottom: 20px;
-    animation: pulse 2s infinite;
-  }
-  
-  h2 {
-    font-size: 2.2rem;
-    font-weight: 700;
-    margin: 0 0 10px 0;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  }
-  
-  p {
-    font-size: 1rem;
-    opacity: 0.9;
-    margin: 0;
-    font-weight: 400;
-  }
+.shape-2 {
+  width: 150px;
+  height: 150px;
+  background: linear-gradient(45deg, #06b6d4, #0891b2);
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+  top: 20%;
+  right: -10%;
+  animation-delay: -2s;
 }
 
-/* Login Form */
-.login-form {
-  width: 100%;
-  max-width: 400px;
-  margin-bottom: 30px;
-}
-
-/* Login Card */
-.login-card {
+.shape-3 {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(45deg, #8b5cf6, #7c3aed);
   border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  margin: 0;
-  animation: slideInUp 0.6s ease-out 0.2s both;
-  
-  ion-card-content {
-    padding: 30px 25px;
-  }
+  bottom: 20%;
+  left: 10%;
+  animation-delay: -4s;
+  transform: rotate(45deg);
 }
 
-/* Phone Input Styling */
-.phone-input-item {
-  --background: rgba(102, 126, 234, 0.05);
-  --border-radius: 15px;
-  --padding-start: 20px;
-  --padding-end: 20px;
-  --padding-top: 15px;
-  --padding-bottom: 15px;
-  margin-bottom: 20px;
-  border: 2px solid transparent;
-  transition: all 0.3s ease;
-  
-  &:focus-within {
-    --background: rgba(102, 126, 234, 0.1);
-    border-color: #667eea;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
-  }
-  
-  ion-label {
-    --color: #667eea;
-    font-weight: 600;
-    font-size: 0.9rem;
-  }
-  
-  ion-input {
-    --color: #333;
-    --placeholder-color: #999;
-    font-size: 1rem;
-    font-weight: 500;
-  }
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-30px) rotate(120deg); }
+  66% { transform: translateY(15px) rotate(240deg); }
 }
 
-/* Error Messages */
-.error-messages {
-  margin-bottom: 20px;
-  
-  ion-text {
-    display: flex;
-    align-items: center;
-    font-size: 0.85rem;
-    margin-bottom: 5px;
-    animation: shake 0.5s ease-in-out;
-    
-    ion-icon {
-      margin-right: 8px;
-      font-size: 1rem;
-    }
-  }
-}
-
-/* reCAPTCHA Container */
-.recaptcha-container {
-  display: none;
-  margin-bottom: 20px;
-}
-
-/* Login Button */
-.login-button {
-  --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --background-hover: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
-  --color: white;
-  --border-radius: 15px;
-  --padding-top: 15px;
-  --padding-bottom: 15px;
-  --box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-  
-  font-weight: 600;
-  font-size: 1.1rem;
-  text-transform: none;
-  letter-spacing: 0.5px;
-  margin-top: 10px;
-  
-  transition: all 0.3s ease;
-  
-  &:not([disabled]):hover {
-    transform: translateY(-2px);
-    --box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
-  }
-  
-  &:not([disabled]):active {
-    transform: translateY(0);
-  }
-  
-  &[disabled] {
-    --background: #ccc;
-    --color: #999;
-    --box-shadow: none;
-    cursor: not-allowed;
-  }
-  
-  ion-icon {
-    margin-right: 8px;
-    font-size: 1.2rem;
-  }
-}
-
-/* Login Footer */
-.login-footer {
-  text-align: center;
-  animation: fadeIn 1s ease-out 0.4s both;
-  
-  ion-text {
-    small {
-      color: rgba(255, 255, 255, 0.8);
-      font-size: 0.8rem;
-      line-height: 1.4;
-    }
-  }
-}
-
-/* Animations */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-@keyframes shake {
-  0%, 100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-5px);
-  }
-  75% {
-    transform: translateX(5px);
-  }
-}
-
-/* Responsive Design */
-@media (max-width: 480px) {
-  .login-container {
-    padding: 15px;
-  }
-  
-  .login-header {
-    .login-icon {
-      font-size: 60px;
-    }
-    
-    h2 {
-      font-size: 1.8rem;
-    }
-  }
-  
-  .login-card {
-    ion-card-content {
-      padding: 25px 20px;
-    }
-  }
-}
-
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-  ion-content {
-    --background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  }
-  
-  .login-card {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  .phone-input-item {
-    --background: rgba(255, 255, 255, 0.1);
-    
-    &:focus-within {
-      --background: rgba(255, 255, 255, 0.15);
-    }
-    
-    ion-input {
-      --color: #fff;
-      --placeholder-color: #ccc;
-    }
-  }
-}
-
-/* Custom Ionic Variables Override */
-:root {
-  --ion-color-primary: #667eea;
-  --ion-color-primary-rgb: 102, 126, 234;
-  --ion-color-primary-contrast: #ffffff;
-  --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #5a67d8;
-  --ion-color-primary-tint: #764ba2;
+/* Phone input wrapper focus effect */
+.phone-input-wrapper:focus-within {
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.1),
+              0 15px 40px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }

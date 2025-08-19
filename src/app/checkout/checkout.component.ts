@@ -1,4 +1,3 @@
-// checkout.component.ts - Fixed version
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component, Injector, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -7,6 +6,35 @@ import { ToastController } from '@ionic/angular';
 import { WebrtcService } from '../webrtc.service';
 import { Subscription } from 'rxjs';
 
+// Define interfaces for type safety
+interface User {
+  name: string;
+  email: string;
+  phone_number: string;
+}
+
+interface Counsellor {
+  id?: number;
+  user_id?: number;
+  name?: string;
+  specialization?: string;
+  session_date?: string;
+  session_time?: string;
+  duration?: number | string;
+  price?: number | string;
+}
+
+interface Order {
+  order_id: string;
+  amount: number;
+  currency: string;
+  key: string;
+  name?: string;
+  description?: string;
+  image?: string;
+  booking_id?: number;
+}
+
 @Component({
   selector: 'app-checkout',
   templateUrl: './checkout.component.html',
@@ -14,10 +42,17 @@ import { Subscription } from 'rxjs';
   standalone: false,
 })
 export class CheckoutComponent implements OnInit {
-  counsellor: any = {};
-  user: any = { name: 'Guest', email: 'guest@example.com', phone_number: '9999999999' };
+  counsellor: Counsellor = {};
+  user: User = { name: 'Guest', email: 'guest@example.com', phone_number: '9999999999' };
+  paymentSettings: any = null;
+  sessionDate: string = '';
+  sessionTime: string = '';
+  sessionDuration: number | null = null;
+  sessionPrice: number | null = null;
+  apiUrl: string = environment.apiUrl;
   private subscriptions: Subscription[] = [];
   private webrtcService: WebrtcService | null = null;
+  private userProfileLoaded: boolean = false; // Track if user profile is loaded
 
   constructor(
     private http: HttpClient,
@@ -38,12 +73,61 @@ export class CheckoutComponent implements OnInit {
     }
 
     console.log('Checkout: Valid counsellor data:', this.counsellor);
+    // Initialize session date/time to now by default
+    const now = new Date();
+    this.sessionDate = now.toLocaleDateString();
+    this.sessionTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    // If counsellor object already contains details, prefer them
+    if (this.counsellor.session_date) {
+      this.sessionDate = this.counsellor.session_date;
+    }
+    if (this.counsellor.session_time) {
+      this.sessionTime = this.counsellor.session_time;
+    }
+    if (this.counsellor.duration) {
+      this.sessionDuration = Number(this.counsellor.duration) || null;
+    }
+    if (this.counsellor.price) {
+      const parsed = Number(this.counsellor.price);
+      this.sessionPrice = isNaN(parsed) ? null : parsed;
+    }
     this.loadUserProfile();
+    this.loadCounsellorPaymentSettings();
     this.initializeWebRTCService();
   }
 
   ngOnDestroy() {
     this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  private loadCounsellorPaymentSettings() {
+    const userId = this.counsellor?.user_id || this.counsellor?.id;
+    if (!userId) {
+      console.warn('No user_id found on counsellor for fetching payment settings');
+      return;
+    }
+
+    const url = `${environment.apiUrl}/api/counsellor/payment-settings/${userId}/`;
+    console.log('Fetching counsellor payment settings from:', url);
+    const sub = this.http.get(url).subscribe({
+      next: (response: any) => {
+        console.log('Counsellor payment settings:', response);
+        this.paymentSettings = response;
+        // Map settings to session fields
+        if (response?.session_duration) {
+          this.sessionDuration = response.session_duration;
+        }
+        if (response?.session_fee) {
+          const fee = parseFloat(response.session_fee);
+          this.sessionPrice = isNaN(fee) ? null : fee;
+        }
+      },
+      error: (error) => {
+        console.error('Failed to load counsellor payment settings:', error);
+        this.showToast('Unable to load counsellor payment settings.', 'warning');
+      }
+    });
+    this.subscriptions.push(sub);
   }
 
   private initializeWebRTCService() {
@@ -55,14 +139,23 @@ export class CheckoutComponent implements OnInit {
   }
 
   async loadUserProfile() {
-    const profileSub = this.http.get(`${environment.apiUrl}/api/user/profile/`).subscribe({
+    const profileSub = this.http.get(`${environment.apiUrl}/api/dashboard/profile/`).subscribe({
       next: (response: any) => {
         console.log('Checkout: User profile response:', response);
-        this.user = response.user;
+        // Validate response.user and ensure it has required fields
+        if (response.user && response.user.name && response.user.email && response.user.phone_number) {
+          this.user = response.user;
+        } else {
+          console.warn('Invalid user profile data:', response.user);
+          this.user = { name: 'Guest', email: 'guest@example.com', phone_number: '9999999999' };
+        }
+        this.userProfileLoaded = true;
       },
       error: (error) => {
-        console.error('Checkout: User profile error:', error);
-        this.showToast('Failed to load user profile.', 'danger');
+        console.error('Checkout: User profile error:', error.status, error.message, error.error);
+        this.showToast('Failed to load user profile. Using default values.', 'warning');
+        this.user = { name: 'Guest', email: 'guest@example.com', phone_number: '9999999999' };
+        this.userProfileLoaded = true;
       },
     });
 
@@ -76,7 +169,13 @@ export class CheckoutComponent implements OnInit {
       return;
     }
 
-    const payload = { counsellor_id: this.counsellor.id };
+    // Use default user values if profile not loaded
+    if (!this.userProfileLoaded) {
+      console.warn('User profile not loaded yet. Using default user values.');
+      this.user = { name: 'Guest', email: 'guest@example.com', phone_number: '9999999999' };
+    }
+
+    const payload = { counsellor_id: this.counsellor.user_id };
     console.log('Checkout: Initiating payment with payload:', payload);
 
     const paymentSub = this.http
@@ -100,7 +199,6 @@ export class CheckoutComponent implements OnInit {
     this.subscriptions.push(paymentSub);
   }
 
-  // Dynamically load Razorpay script
   private loadRazorpayScript(): Promise<void> {
     return new Promise((resolve, reject) => {
       if ((window as any).Razorpay) {
@@ -117,28 +215,34 @@ export class CheckoutComponent implements OnInit {
     });
   }
 
-  openRazorpayCheckout(order: any) {
+  openRazorpayCheckout(order: Order) {
+    console.log('openRazorpayCheckout: order object:', order);
+    console.log('openRazorpayCheckout: this.user object:', this.user);
+
     if (!(window as any).Razorpay) {
       console.error('Razorpay not loaded');
       this.showToast('Payment gateway not loaded. Please try again.', 'danger');
       return;
     }
 
+    // Ensure user object has fallback values
+    const user: User = this.user || { name: 'Guest', email: 'guest@example.com', phone_number: '9999999999' };
+
     const options = {
       key: order.key,
       amount: order.amount,
       currency: order.currency,
-      name: order.name,
-      description: order.description,
-      image: order.image,
+      name: order.name ?? 'Counselling Session',
+      description: order.description ?? 'Online Counselling Session',
+      image: order.image ?? 'https://example.com/your_logo.png',
       order_id: order.order_id,
       handler: (response: any) => {
         this.verifyPayment(response, order.booking_id);
       },
       prefill: {
-        name: this.user.name,
-        email: this.user.email,
-        contact: this.user.phone_number,
+        name: user.name || 'Guest',
+        email: user.email || 'guest@example.com',
+        contact: user.phone_number || '9999999999',
       },
       theme: {
         color: '#3399cc',
@@ -157,7 +261,7 @@ export class CheckoutComponent implements OnInit {
     }
   }
 
-  verifyPayment(paymentResponse: any, bookingId: number) {
+  verifyPayment(paymentResponse: any, bookingId?: number) {
     const payload = new URLSearchParams({
       razorpay_payment_id: paymentResponse.razorpay_payment_id,
       razorpay_order_id: paymentResponse.razorpay_order_id,
@@ -169,18 +273,17 @@ export class CheckoutComponent implements OnInit {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       })
       .subscribe({
-          next: (response: any) => {
-              console.log('Payment verification response:', response);
-              if (response.status === 'Payment credited to wallet') {
-                  this.showToast('Payment credited to wallet!', 'success');
-                  // Add delay to ensure payment processing is complete
-                  setTimeout(() => {
-                      this.initiateCall(response.booking_id || bookingId);
-                  }, 1000);
-              } else {
-                  this.showToast('Unexpected payment status.', 'danger');
-              }
-          },
+        next: (response: any) => {
+          console.log('Payment verification response:', response);
+          if (response.status === 'Payment credited to wallet') {
+            this.showToast('Payment credited !', 'success');
+            setTimeout(() => {
+              this.initiateCall(response.booking_id || bookingId);
+            }, 1000);
+          } else {
+            this.showToast('Unexpected payment status.', 'danger');
+          }
+        },
         error: (error) => {
           console.error('Payment verification error:', error);
           this.showToast('Payment verification failed.', 'danger');
@@ -190,7 +293,7 @@ export class CheckoutComponent implements OnInit {
     this.subscriptions.push(verifySub);
   }
 
-  async initiateCall(bookingId: number) {
+  async initiateCall(bookingId?: number) {
     try {
       const accessToken = localStorage.getItem('access_token');
       console.log('Access token in initiateCall:', accessToken);
@@ -200,21 +303,17 @@ export class CheckoutComponent implements OnInit {
         return;
       }
 
-      // First initiate call via API to create CallRequest and notify counsellor
       const callInitSub = this.http
         .post(`${environment.apiUrl}/api/dashboard/call/initiate/`, { booking_id: bookingId })
         .subscribe({
           next: async (response: any) => {
             console.log('Call initiation response:', response);
             
-            // Add delay to ensure call request is created
             setTimeout(async () => {
               if (this.webrtcService) {
                 try {
-                  // Start the WebRTC call
-                  await this.webrtcService.startCall(bookingId, { audio: true, video: false }, accessToken);
+                  await this.webrtcService.startCall(bookingId ?? 0, { audio: true, video: false }, accessToken, this.sessionDuration ?? undefined);
                   
-                  // Subscribe to WebRTC service observables
                   const messageSub = this.webrtcService.getMessageObservable().subscribe((message: any) => {
                     console.log('Received WebRTC message in checkout:', message);
                     if (this.webrtcService) {
@@ -237,11 +336,9 @@ export class CheckoutComponent implements OnInit {
 
                   this.showToast('Call initiated! Waiting for counsellor...', 'success');
                   
-                  // Navigate to call component
                   this.router.navigate(['/call'], {
                     state: { bookingId, counsellor: this.counsellor },
                   });
-                  
                 } catch (webrtcError) {
                   console.error('WebRTC error:', webrtcError);
                   this.showToast('Failed to initialize call. Please check your network or try again.', 'danger');
@@ -250,7 +347,7 @@ export class CheckoutComponent implements OnInit {
                 console.error('WebRTC service not available');
                 this.showToast('Call service not available.', 'danger');
               }
-            }, 1500); // Delay to ensure backend processing is complete
+            }, 1500);
           },
           error: (error) => {
             console.error('Call initiation error:', error);
@@ -273,5 +370,9 @@ export class CheckoutComponent implements OnInit {
       position: 'bottom',
     });
     await toast.present();
+  }
+
+  goToDashboard(): void {
+    this.router.navigate(['/user-dashboard']);
   }
 }

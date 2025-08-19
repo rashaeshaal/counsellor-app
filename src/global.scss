@@ -34,4 +34,25 @@
 
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import "@ionic/angular/css/palettes/dark.system.css";
+/* @import "@ionic/angular/css/palettes/dark.system.css"; */
+@import '~@angular/material/prebuilt-themes/indigo-pink.css';
+:root {
+  --primary-color: #0D9488;
+  --secondary-color: #e7f3f2;
+  --text-primary: #1F2937;
+  --text-secondary: #ffffff;
+  --background-color: #ffffff;
+}
+
+body {
+  font-family: 'Manrope', sans-serif;
+  min-height: max(884px, 100dvh);
+}
+
+ion-app, ion-router-outlet, ion-content, ion-page {
+  height: 100%;
+}
+
+ion-content {
+  --background: #ffffff;
+}

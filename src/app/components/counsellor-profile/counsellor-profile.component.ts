@@ -10,13 +10,13 @@ import { environment } from 'src/environments/environment';
   templateUrl: './counsellor-profile.component.html',
   styleUrls: ['./counsellor-profile.component.scss'],
   standalone: false,
- 
 })
-export class CounsellorProfileComponent  implements OnInit {
+export class CounsellorProfileComponent implements OnInit {
   profileForm: FormGroup;
   isLoading = false;
   profilePhotoUrl: string | null = null;
   selectedPhoto: File | null = null;
+  isEditMode = false;
 
   genderOptions = [
     { value: 'M', label: 'Male' },
@@ -31,7 +31,7 @@ export class CounsellorProfileComponent  implements OnInit {
     private http: HttpClient,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
-    private router: Router
+    public router: Router
   ) {
     this.profileForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(255)]],
@@ -45,11 +45,33 @@ export class CounsellorProfileComponent  implements OnInit {
       account_number: ['', [Validators.required, Validators.pattern(/^\d{9,20}$/)]],
       ifsc_code: ['', [Validators.required, Validators.pattern(/^[A-Z]{4}0[A-Z0-9]{6}$/)]],
       profile_photo: [null],
+      is_active: [false],
+      is_approved: [false],
     });
   }
 
   ngOnInit() {
     this.loadProfile();
+  }
+
+  // Public method for navigation
+  goBack() {
+    this.router.navigate(['/dashboard']);
+  }
+
+  toggleEditMode() {
+    this.isEditMode = !this.isEditMode;
+    if (this.isEditMode) {
+      this.loadProfile();
+    } else {
+      this.loadProfile(); // Reload profile to reset form if cancelled
+    }
+  }
+
+  getGenderLabel(): string {
+    const genderValue = this.profileForm.get('gender')?.value;
+    const foundOption = this.genderOptions.find(option => option.value === genderValue);
+    return foundOption ? foundOption.label : genderValue;
   }
 
   async loadProfile() {
@@ -115,7 +137,7 @@ export class CounsellorProfileComponent  implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       this.selectedPhoto = input.files[0];
-      console.log('Selected photo:', this.selectedPhoto); // Debug
+      console.log('Selected photo:', this.selectedPhoto);
       const reader = new FileReader();
       reader.onload = (e) => {
         this.profilePhotoUrl = e.target?.result as string;
@@ -196,17 +218,23 @@ export class CounsellorProfileComponent  implements OnInit {
         : `+91${fields.google_pay_number}`;
       fields.ifsc_code = fields.ifsc_code.toUpperCase();
 
-      for (const key in fields) {
-        if (fields[key] !== null && fields[key] !== undefined) {
-          formData.append(key, fields[key]);
+      // Exclude read-only fields
+      const editableFields = { ...fields };
+      delete editableFields.is_active;
+      delete editableFields.is_approved;
+      delete editableFields.profile_photo; // Do not send the photo URL
+
+      for (const key in editableFields) {
+        if (editableFields[key] !== null && editableFields[key] !== undefined) {
+          formData.append(key, editableFields[key]);
         }
       }
 
       if (this.selectedPhoto) {
-        console.log('Appending profile_photo:', this.selectedPhoto); // Debug
+        console.log('Appending profile_photo:', this.selectedPhoto);
         formData.append('profile_photo', this.selectedPhoto);
       } else {
-        console.log('No profile photo selected'); // Debug
+        console.log('No profile photo selected');
       }
 
       const headers = new HttpHeaders({
@@ -217,13 +245,14 @@ export class CounsellorProfileComponent  implements OnInit {
         .toPromise();
       await this.hideLoader();
       this.showToast('Profile updated successfully');
+      this.isEditMode = false; // Exit edit mode on successful save
+      this.loadProfile(); // Refresh profile data
     } catch (error: any) {
       await this.hideLoader();
       if (error.status === 401) {
         accessToken = await this.refreshToken();
         if (accessToken) {
           try {
-            // Recreate formData for the retry request
             const retryFormData = new FormData();
             const fields = this.profileForm.value;
             fields.phone_number = fields.phone_number.startsWith('+') ? fields.phone_number : `+91${fields.phone_number}`;
@@ -232,9 +261,14 @@ export class CounsellorProfileComponent  implements OnInit {
               : `+91${fields.google_pay_number}`;
             fields.ifsc_code = fields.ifsc_code.toUpperCase();
 
-            for (const key in fields) {
-              if (fields[key] !== null && fields[key] !== undefined) {
-                retryFormData.append(key, fields[key]);
+            const retryEditableFields = { ...fields };
+            delete retryEditableFields.is_active;
+            delete retryEditableFields.is_approved;
+            delete retryEditableFields.profile_photo; // Do not send the photo URL
+
+            for (const key in retryEditableFields) {
+              if (retryEditableFields[key] !== null && retryEditableFields[key] !== undefined) {
+                retryFormData.append(key, retryEditableFields[key]);
               }
             }
 
@@ -250,6 +284,8 @@ export class CounsellorProfileComponent  implements OnInit {
               .toPromise();
             await this.hideLoader();
             this.showToast('Profile updated successfully');
+            this.isEditMode = false; // Exit edit mode on successful save
+            this.loadProfile(); // Refresh profile data
           } catch (retryError) {
             console.error('Retry failed:', retryError);
             this.showToast('Session expired. Please log in again.', 'danger');
@@ -264,9 +300,6 @@ export class CounsellorProfileComponent  implements OnInit {
         this.showToast(errorMsg, 'danger');
         console.error('Update profile error:', error);
       }
-  
-    // The following block is invalid because retryFormData is not defined in this scope.
-    // Removed erroneous usage to fix the compile error.
+    }
   }
-}
 }

@@ -13,6 +13,7 @@ import { environment } from 'src/environments/environment';
 export class FooterComponent implements OnInit {
   isActive = true;
   activeBookingId: number | null = null;
+  counsellorId: string | null = null;
 
   constructor(
     private http: HttpClient,
@@ -76,6 +77,7 @@ export class FooterComponent implements OnInit {
           next: (response: any) => {
             console.log('FooterComponent profile response:', response);
             this.isActive = response.counsellor.is_active;
+            this.counsellorId = response.counsellor.id;
           },
           error: (error) => {
             console.error('FooterComponent profile error:', error);
@@ -89,7 +91,7 @@ export class FooterComponent implements OnInit {
     }
   }
 
-  navigateTo(page: string) {
+  navigateTo(page: string | any[]) {
     console.log('FooterComponent: Navigating to:', page);
     this.navCtrl.navigateForward(page).then(success => {
       console.log('FooterComponent: Navigation to', page, success ? 'Successful' : 'Failed');

@@ -14,19 +14,25 @@ export class AuthInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Skip interceptor for firebase-login to avoid adding Bearer token
-    if (req.url.includes('/api/auth/firebase-login/')) {
+    const excludedUrls = [
+      '/api/auth/counsellorlogin/',
+      '/api/auth/counsellor/register/',
+      '/api/auth/firebase-login/'
+    ];
+
+    if (excludedUrls.some(url => req.url.includes(url))) {
       return next.handle(req);
     }
 
     const accessToken = localStorage.getItem('access_token');
     let modifiedReq = req;
+
     if (accessToken) {
       modifiedReq = req.clone({
         setHeaders: { Authorization: `Bearer ${accessToken}` },
       });
     } else {
-      // If no token, redirect to login
+      // If no token, and it's not an excluded URL, then it's an error.
       this.router.navigate(['']);
       return throwError(() => new Error('No access token found'));
     }

@@ -1,4 +1,11 @@
 <ion-app>
   <div id="recaptcha-container"></div>
   <ion-router-outlet></ion-router-outlet>
+  <ion-footer class="ion-no-border" *ngIf="footerType !== 'none'">
+    <ion-toolbar class="p-0 m-0" style="--min-height: auto;">
+      <app-home-footer *ngIf="footerType === 'home'"></app-home-footer>
+      <app-footer *ngIf="footerType === 'counsellor'"></app-footer>
+    </ion-toolbar>
+    <div class="h-5 bg-white"></div>
+  </ion-footer>
 </ion-app>

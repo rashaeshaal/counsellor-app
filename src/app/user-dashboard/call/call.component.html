@@ -71,7 +71,7 @@
   <audio #remoteAudio autoplay aria-hidden="true"></audio>
 
   <!-- Call Controls -->
-  <div class="call-controls" *ngIf="isConnected">
+  <div class="call-controls" *ngIf="isConnecting || isConnected">
     <!-- Audio Control -->
     <ion-button fill="solid" 
                 [color]="isAudioEnabled ? 'medium' : 'danger'"
@@ -100,12 +100,12 @@
       <ion-icon name="videocam" aria-hidden="true"></ion-icon>
     </ion-button>
 
-    <!-- End Call -->
-    <ion-button fill="solid" 
-                color="danger" 
-                (click)="endCall()"
+    <!-- End/Cancel Call -->
+    <ion-button fill="solid"
+                color="danger"
+                (click)="isRinging ? cancelCall() : endCall()"
                 class="control-btn end-call-btn"
-                aria-label="End call">
+                [attr.aria-label]="isRinging ? 'Cancel Call' : 'End Call'">
       <ion-icon name="call" class="end-call-icon" aria-hidden="true"></ion-icon>
     </ion-button>
   </div>

@@ -1,117 +1,140 @@
-<ion-content class="profile-content">
-  <div class="profile-header">
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/counsellor-dashboard" aria-label="Back to dashboard"></ion-back-button>
-    </ion-buttons>
-    <h2>Counsellor Profile</h2>
-    <p>Complete your professional profile</p>
-  </div>
+<div class="relative flex size-full min-h-screen flex-col bg-white justify-between group/design-root overflow-x-hidden" style='font-family: Lexend, "Noto Sans", sans-serif;'>
+  <div>
+    <!-- Header with Back and Share Buttons -->
+    <div class="flex items-center bg-white p-4 pb-2 justify-between">
+      <div class="text-[#111817] flex size-12 shrink-0 items-center" data-icon="ArrowLeft" data-size="24px" data-weight="regular" (click)="goBack()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+          <path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path>
+        </svg>
+      </div>
+      <div class="flex w-12 items-center justify-end">
+        <button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 bg-transparent text-[#111817] gap-2 text-base font-bold leading-normal tracking-[0.015em] min-w-0 p-0">
+          <div class="text-[#111817]" data-icon="Share" data-size="24px" data-weight="regular">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M229.66,109.66l-48,48a8,8,0,0,1-11.32-11.32L204.69,112H165a88,88,0,0,0-85.23,66,8,8,0,0,1-15.5-4A103.94,103.94,0,0,1,165,96h39.71L170.34,61.66a8,8,0,0,1,11.32-11.32l48,48A8,8,0,0,1,229.66,109.66ZM192,208H40V88a8,8,0,0,0-16,0V208a16,16,0,0,0,16,16H192a8,8,0,0,0,0-16Z"></path>
+            </svg>
+          </div>
+        </button>
+      </div>
+    </div>
 
-  <ion-card class="profile-card">
-    <ion-card-content>
-      <!-- Profile Photo Section -->
-      <div class="profile-photo-section">
-        <div class="profile-photo-container">
-          <div class="profile-photo" (click)="selectPhoto()">
-            <ion-img *ngIf="profilePhotoUrl" [src]="profilePhotoUrl"></ion-img>
-            <div *ngIf="!profilePhotoUrl" class="photo-placeholder">
-              <ion-icon name="camera-outline" size="large"></ion-icon>
+    <!-- Counselor Profile Section -->
+    <div class="flex p-4 @container">
+      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="flex w-full flex-col gap-6 items-center">
+        <!-- Profile Photo and Basic Info -->
+        <div class="flex gap-4 flex-col items-center">
+          <div class="relative">
+            <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full min-h-32 w-32" [style.background-image]="'url(' + profilePhotoUrl + ')'"></div>
+            <input #photoInput type="file" accept="image/*" (change)="onPhotoSelected($event)" class="hidden">
+            <button *ngIf="isEditMode" (click)="selectPhoto()" class="absolute bottom-0 right-0 bg-[#618985] text-white rounded-full p-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M227.32,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152a15.86,15.86,0,0,0-3.83,10.44L28,212.88a8,8,0,0,0,9.15,9.15l50.44-4.84a15.86,15.86,0,0,0,10.44-3.83L221.37,90a16,16,0,0,0,5.95-16.63ZM92,208a4,4,0,0,1-2.83-1.17L40,161.37,56,145.37l48,48Zm4-22.63L48,137.37,70.63,114.74l48,48Zm96-96L144,137.37,112,105.37l48-48L208,105.37Z"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="flex flex-col items-center justify-center">
+            <ng-container *ngIf="!isEditMode">
+              <p class="text-[#111817] text-[22px] font-bold leading-tight tracking-[-0.015em] text-center">{{ profileForm.get('name')?.value }}</p>
+              <p class="text-[#618985] text-base font-normal leading-normal text-center">{{ profileForm.get('qualification')?.value }}</p>
+              <p class="text-[#618985] text-base font-normal leading-normal text-center">{{ profileForm.get('experience')?.value }} years of experience</p>
+            </ng-container>
+            <ng-container *ngIf="isEditMode">
+              <input formControlName="name" class="text-[#111817] text-[22px] font-bold leading-tight tracking-[-0.015em] text-center border rounded p-2" placeholder="Enter name">
+              <input formControlName="qualification" class="text-[#618985] text-base font-normal leading-normal text-center border rounded p-2" placeholder="Enter qualification">
+              <input formControlName="experience" type="number" class="text-[#618985] text-base font-normal leading-normal text-center border rounded p-2" placeholder="Years of experience">
+            </ng-container>
+          </div>
+        </div>
+
+        <!-- Counselor Details Section -->
+        <div class="w-full max-w-[600px] flex flex-col gap-4">
+          <div class="flex justify-between items-center">
+            <h3 class="text-[#111817] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Counselor Details</h3>
+            <button type="button" (click)="toggleEditMode()" class="bg-[#618985] text-white rounded-full px-4 py-2">{{ isEditMode ? 'Cancel' : 'Edit' }}</button>
+          </div>
+          <div class="flex flex-col gap-2 px-4">
+            <div class="flex justify-between items-center">
+              <p class="text-[#111817] text-base font-medium leading-normal">Email</p>
+              <ng-container *ngIf="!isEditMode">
+                <p class="text-[#618985] text-base font-normal leading-normal">{{ profileForm.get('email')?.value }}</p>
+              </ng-container>
+              <ng-container *ngIf="isEditMode">
+                <input formControlName="email" type="email" class="text-[#618985] text-base font-normal leading-normal border rounded p-2" placeholder="Enter email">
+              </ng-container>
+            </div>
+            <div class="flex justify-between items-center">
+              <p class="text-[#111817] text-base font-medium leading-normal">Phone Number</p>
+              <ng-container *ngIf="!isEditMode">
+                <p class="text-[#618985] text-base font-normal leading-normal">{{ profileForm.get('phone_number')?.value }}</p>
+              </ng-container>
+              <ng-container *ngIf="isEditMode">
+                <input formControlName="phone_number" type="text" class="text-[#618985] text-base font-normal leading-normal border rounded p-2" placeholder="Enter phone number">
+              </ng-container>
+            </div>
+            <div class="flex justify-between items-center">
+              <p class="text-[#111817] text-base font-medium leading-normal">Age</p>
+              <ng-container *ngIf="!isEditMode">
+                <p class="text-[#618985] text-base font-normal leading-normal">{{ profileForm.get('age')?.value }}</p>
+              </ng-container>
+              <ng-container *ngIf="isEditMode">
+                <input formControlName="age" type="number" class="text-[#618985] text-base font-normal leading-normal border rounded p-2" placeholder="Enter age">
+              </ng-container>
+            </div>
+            <div class="flex justify-between items-center">
+              <p class="text-[#111817] text-base font-medium leading-normal">Gender</p>
+              <ng-container *ngIf="!isEditMode">
+                <p class="text-[#618985] text-base font-normal leading-normal">{{ getGenderLabel() }}</p>
+              </ng-container>
+              <ng-container *ngIf="isEditMode">
+                <select formControlName="gender" class="text-[#618985] text-base font-normal leading-normal border rounded p-2">
+                  <option *ngFor="let option of genderOptions" [value]="option.value">{{ option.label }}</option>
+                </select>
+              </ng-container>
+            </div>
+            <div class="flex justify-between items-center">
+              <p class="text-[#111817] text-base font-medium leading-normal">Google Pay Number</p>
+              <ng-container *ngIf="!isEditMode">
+                <p class="text-[#618985] text-base font-normal leading-normal">{{ profileForm.get('google_pay_number')?.value }}</p>
+              </ng-container>
+              <ng-container *ngIf="isEditMode">
+                <input formControlName="google_pay_number" type="text" class="text-[#618985] text-base font-normal leading-normal border rounded p-2" placeholder="Enter Google Pay number">
+              </ng-container>
+            </div>
+            <div class="flex justify-between items-center">
+              <p class="text-[#111817] text-base font-medium leading-normal">Account Number</p>
+              <ng-container *ngIf="!isEditMode">
+                <p class="text-[#618985] text-base font-normal leading-normal">{{ profileForm.get('account_number')?.value }}</p>
+              </ng-container>
+              <ng-container *ngIf="isEditMode">
+                <input formControlName="account_number" type="text" class="text-[#618985] text-base font-normal leading-normal border rounded p-2" placeholder="Enter account number">
+              </ng-container>
+            </div>
+            <div class="flex justify-between items-center">
+              <p class="text-[#111817] text-base font-medium leading-normal">IFSC Code</p>
+              <ng-container *ngIf="!isEditMode">
+                <p class="text-[#618985] text-base font-normal leading-normal">{{ profileForm.get('ifsc_code')?.value }}</p>
+              </ng-container>
+              <ng-container *ngIf="isEditMode">
+                <input formControlName="ifsc_code" type="text" class="text-[#618985] text-base font-normal leading-normal border rounded p-2" placeholder="Enter IFSC code">
+              </ng-container>
+            </div>
+            <div class="flex justify-between items-center">
+              <p class="text-[#111817] text-base font-medium leading-normal">Status</p>
+              <p class="text-[#618985] text-base font-normal leading-normal">
+                {{ profileForm.get('is_active')?.value ? 'Active' : 'Inactive' }}
+                {{ profileForm.get('is_approved')?.value ? ', Approved' : ', Not Approved' }}
+              </p>
+            </div>
+            <div *ngIf="isEditMode" class="flex justify-end gap-4">
+              <button type="submit" class="bg-[#618985] text-white rounded-full px-4 py-2">Save</button>
             </div>
           </div>
-          <div class="photo-upload-btn" (click)="selectPhoto()">
-            <ion-icon name="add-outline" size="small"></ion-icon>
-          </div>
         </div>
-        <p class="photo-upload-text">Tap to add profile photo</p>
-        <input #photoInput type="file" accept="image/*" class="photo-input" (change)="onPhotoSelected($event)" />
-      </div>
-
-      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
-        <!-- Personal Information Section -->
-        <div class="form-section">
-          <h3 class="section-title">Personal Information</h3>
-          
-          <ion-item class="form-item">
-            <ion-label position="floating">Full Name</ion-label>
-            <ion-input formControlName="name" placeholder="Enter your full name"></ion-input>
-          </ion-item>
-
-          <div class="form-row">
-            <ion-item class="form-item">
-              <ion-label position="floating">Age</ion-label>
-              <ion-input formControlName="age" type="number" placeholder="25"></ion-input>
-            </ion-item>
-            <ion-item class="form-item">
-              <ion-label position="floating">Gender</ion-label>
-              <ion-select formControlName="gender" placeholder="Select">
-                <ion-select-option *ngFor="let option of genderOptions" [value]="option.value">
-                  {{ option.label }}
-                </ion-select-option>
-              </ion-select>
-            </ion-item>
-          </div>
-        </div>
-
-        <!-- Contact Information Section -->
-        <div class="form-section">
-          <h3 class="section-title">Contact Information</h3>
-          
-          <ion-item class="form-item">
-            <ion-label position="floating">Email Address</ion-label>
-            <ion-input formControlName="email" type="email" placeholder="example@email.com"></ion-input>
-          </ion-item>
-
-          <ion-item class="form-item">
-            <ion-label position="floating">Phone Number</ion-label>
-            <ion-input formControlName="phone_number" type="tel" placeholder="+91 98765 43210"></ion-input>
-          </ion-item>
-        </div>
-
-        <!-- Professional Information Section -->
-        <div class="form-section">
-          <h3 class="section-title">Professional Information</h3>
-          
-          <ion-item class="form-item">
-            <ion-label position="floating">Qualification</ion-label>
-            <ion-input formControlName="qualification" placeholder="e.g., M.A. Psychology, PhD"></ion-input>
-          </ion-item>
-
-          <ion-item class="form-item">
-            <ion-label position="floating">Experience (Years)</ion-label>
-            <ion-input formControlName="experience" type="number" placeholder="5"></ion-input>
-          </ion-item>
-        </div>
-
-        <!-- Payment Information Section -->
-        <div class="form-section">
-          <h3 class="section-title">Payment Information</h3>
-          
-          <ion-item class="form-item">
-            <ion-label position="floating">Google Pay Number</ion-label>
-            <ion-input formControlName="google_pay_number" type="tel" placeholder="+91 98765 43210"></ion-input>
-          </ion-item>
-
-          <ion-item class="form-item">
-            <ion-label position="floating">Account Number</ion-label>
-            <ion-input formControlName="account_number" placeholder="Enter account number"></ion-input>
-          </ion-item>
-
-          <ion-item class="form-item">
-            <ion-label position="floating">IFSC Code</ion-label>
-            <ion-input formControlName="ifsc_code" placeholder="e.g., SBIN0001234"></ion-input>
-          </ion-item>
-        </div>
-
-        <ion-button 
-          type="submit" 
-          expand="block" 
-          shape="round" 
-          class="submit-btn"
-          [disabled]="!profileForm.valid">
-          <ion-icon name="save-outline" slot="start"></ion-icon>
-          Update Profile
-        </ion-button>
       </form>
-    </ion-card-content>
-  </ion-card>
-</ion-content>
+    </div>
+  </div>
+  <div>
+    <app-footer></app-footer>
+    <div class="h-5 bg-white"></div>
+  </div>
+</div>

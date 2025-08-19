@@ -17,6 +17,8 @@ import { CallComponent } from './user-dashboard/call/call.component';
 import { WalletComponent } from './wallet/wallet.component';
 import { ProblemSelectionComponent } from './problem-selection/problem-selection.component';
 import { UserRegistrationComponent } from './user-page/user-registration/user-registration.component';
+import { ViewCounsellorProfileComponent } from './components/view-counsellor-profile/view-counsellor-profile.component';
+
 const routes: Routes = [
   {
     path: '',
@@ -29,7 +31,8 @@ const routes: Routes = [
   },
   { path: 'counsellor-register', component: CounsellorRegisterComponent },
   { path: 'counsellor-dashboard',component: CounsellorDashboardComponent},
-  { path: 'counsellor-profile', component: CounsellorProfileComponent },
+  { path: 'counsellor-profile/:id', component: CounsellorProfileComponent },
+  { path: 'view-counsellor/:id', component: ViewCounsellorProfileComponent },
   { path: 'counsellor-notifications', component: CounsellorNotificationsComponent },
   { path: 'counsellor-call', component: CounsellorCallComponent },
   { path: 'user-profile', component: UserProfileComponent },
@@ -41,7 +44,8 @@ const routes: Routes = [
   { path: 'call', component: CallComponent },
   { path: 'wallet', component: WalletComponent },
   { path: 'problem-selection', component: ProblemSelectionComponent },
-  { path: 'user-registeration', component: UserRegistrationComponent }
+  { path: 'user-registration', component: UserRegistrationComponent }
+  
   
 ];
 

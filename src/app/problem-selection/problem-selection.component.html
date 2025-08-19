@@ -1,71 +1,85 @@
-<ion-content class="ion-padding content-bg">
-  <!-- Loading Spinner -->
-  <ion-spinner *ngIf="isLoading" name="crescent" class="loading-spinner"></ion-spinner>
-  
-  <!-- Error Message -->
-  <ion-alert
-    *ngIf="errorMessage"
-    [message]="errorMessage"
-    header="Error"
-    [buttons]="['OK']"
-    class="alert-danger"
-  ></ion-alert>
-  
-  <!-- Success Message -->
-  <ion-toast
-    *ngIf="successMessage"
-    [message]="successMessage"
-    [duration]="3000"
-    color="success"
-    position="top"
-  ></ion-toast>
-  
-  <!-- Available Problems -->
-  <h2 class="section-title">Available Problems</h2>
-  <ion-list class="problems-list">
-    <ion-card *ngFor="let problem of problems" class="problem-card">
-      <ion-card-header>
-        <ion-card-title class="card-title">{{ problem.title }}</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <p class="card-description">{{ problem.description || 'No description available' }}</p>
-        <img *ngIf="problem.image" 
-             [src]="'http://localhost:8000/' + problem.image" 
-             [alt]="problem.title" 
-             class="problem-image" />
-        <ion-button
-          (click)="selectProblem(problem.id)"
-          [disabled]="isSelected(problem.id)"
-          [color]="isSelected(problem.id) ? 'medium' : 'primary'"
-          expand="block"
-          class="select-button"
-        >
-          {{ isSelected(problem.id) ? 'Selected' : 'Select Problem' }}
-        </ion-button>
-      </ion-card-content>
-    </ion-card>
-  </ion-list>
-  
-  <!-- Selected Problems -->
-  <h2 class="section-title selected-section">Your Selected Problems</h2>
-  <ion-list class="problems-list">
-    <ion-card *ngIf="userProblems.length === 0" class="empty-card">
-      <ion-card-content>
-        <p class="empty-message">No problems selected yet.</p>
-      </ion-card-content>
-    </ion-card>
-    <ion-card *ngFor="let userProblem of userProblems" class="selected-problem-card">
-      <ion-card-header>
-        <ion-card-title class="card-title">{{ userProblem.problem.title }}</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <p class="card-description">{{ userProblem.problem.description || 'No description available' }}</p>
-        <img *ngIf="userProblem.problem.image" 
-             [src]="'http://localhost:8000/' + userProblem.problem.image" 
-             [alt]="userProblem.problem.title" 
-             class="problem-image" />
-        <p class="selected-date">Selected on: {{ userProblem.selected_at | date:'medium' }}</p>
-      </ion-card-content>
-    </ion-card>
-  </ion-list>
-</ion-content>
+<div
+  class="relative flex size-full min-h-screen flex-col bg-white justify-between group/design-root overflow-x-hidden"
+  style="font-family: Lexend, 'Noto Sans', sans-serif;"
+>
+  <!-- Background shapes -->
+  <div class="bg-decoration">
+    <div class="floating-shape shape-1"></div>
+    <div class="floating-shape shape-2"></div>
+    <div class="floating-shape shape-3"></div>
+  </div>
+
+  <div>
+    <!-- Header -->
+    <div class="flex items-center bg-white p-4 pb-2 justify-between">
+      <div
+        class="text-[#111817] flex size-12 shrink-0 items-center cursor-pointer back-btn"
+        (click)="goBack()"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="28px" height="28px" fill="currentColor" viewBox="0 0 256 256">
+          <path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"></path>
+        </svg>
+      </div>
+      <h2
+        class="text-[#111817] text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12"
+      >
+        What are you going through? 🌟
+      </h2>
+    </div>
+
+    <!-- Problems List -->
+    <div
+      class="grid grid-cols-2 gap-4 p-4"
+    >
+      <div
+        *ngFor="let problem of problems"
+        (click)="selectProblem(problem.id)"
+        [ngClass]="{
+          'border-[#0e9588] bg-[#e6f5f3]': isSelected(problem.id),
+          'border-[#d1d5db] bg-white': !isSelected(problem.id)
+        }"
+        class="flex gap-4 rounded-3xl border p-5 items-center cursor-pointer problem-card transition-all relative"
+      >
+        <img
+          *ngIf="problem.image"
+          [src]="'http://localhost:8000/' + problem.image"
+          alt="{{ problem.title }}"
+          class="w-14 h-14 rounded-full object-cover problem-image"
+        />
+        <h2 class="text-[#111817] text-base font-bold leading-tight truncate flex-1">
+          {{ problem.title }}
+        </h2>
+        <div *ngIf="isSelected(problem.id)" class="select-mark">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#14b8a6" viewBox="0 0 24 24">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading / Error / Success Messages -->
+    <div *ngIf="isLoading" class="p-4 text-center text-[#618985] text-base font-medium">
+      Loading... ✨
+    </div>
+    <div *ngIf="errorMessage" class="p-4 text-center error-message">
+      {{ errorMessage }}
+    </div>
+    <div *ngIf="successMessage" class="p-4 text-center success-message">
+      {{ successMessage }}
+    </div>
+  </div>
+
+  <!-- Continue Button -->
+  <div>
+    <div class="flex px-4 py-3">
+      <button
+        class="flex min-w-[100px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-5 flex-1 bg-[#0e9588] text-white text-base font-bold leading-normal tracking-[0.015em] register-btn"
+        [disabled]="userProblems.length === 0"
+        (click)="goToDashboard()"
+      >
+        <span class="truncate">Continue</span>
+      </button>
+    </div>
+    <div class="h-4 bg-white"></div>
+  </div>
+</div>

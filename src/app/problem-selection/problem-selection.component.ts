@@ -21,7 +21,7 @@ export class ProblemSelectionComponent implements OnInit {
   isLoading: boolean = false; // Added for loading state
 
   constructor(private problemApiService: ProblemApiService,
-              private router: Router
+              private  router: Router
   ) {}
 
   ngOnInit(): void {
@@ -83,4 +83,11 @@ export class ProblemSelectionComponent implements OnInit {
   isSelected(problemId: number): boolean {
     return this.userProblems.some(up => up.problem?.id === problemId);
   }
+  goBack() {
+  this.router.navigate(['/']);
+}
+
+goToDashboard() {
+  this.router.navigate(['/user-dashboard']);
+}
 }

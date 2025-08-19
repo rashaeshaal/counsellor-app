@@ -248,46 +248,20 @@ export class CallComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  cancelCall() {
+    console.log('User canceling call');
+    this.webrtcService.rejectCall();
+    this.router.navigate(['/user-dashboard']);
+  }
+
   // call.component.ts
 async endCall() {
     console.log('User ending call');
     this.clearTimer();
 
-    if (this.bookingId) {
-        try {
-            const headers = new HttpHeaders({
-                'Authorization': `Bearer ${localStorage.getItem('access_token') ?? ''}`
-            });
-
-            const endCallSub = this.http
-                .post(`${environment.apiUrl}/api/call/end/`, { booking_id: this.bookingId }, { headers })
-                .subscribe({
-                    next: (response: any) => {
-                        console.log('End call response:', response);
-                        this.showToast('Call ended and funds transferred', 'success');
-                        this.webrtcService.endCall();
-                        this.router.navigate(['/user-dashboard']);
-                    },
-                    error: (error) => {
-                        console.error('Failed to end call and transfer funds:', error);
-                        this.showToast('Failed to end call and transfer funds', 'danger');
-                        this.webrtcService.endCall();
-                        this.router.navigate(['/user-dashboard']);
-                    }
-                });
-
-            this.subscriptions.push(endCallSub);
-        } catch (error) {
-            console.error('Error ending call:', error);
-            this.showToast('Failed to end call', 'danger');
-            this.webrtcService.endCall();
-            this.router.navigate(['/user-dashboard']);
-        }
-    } else {
-        this.webrtcService.endCall();
-        this.showToast('Call ended', 'warning');
-        this.router.navigate(['/user-dashboard']);
-    }
+    this.webrtcService.endCall();
+    this.showToast('Call ended', 'warning');
+    this.router.navigate(['/user-dashboard']);
 }
 
   async toggleAudio() {

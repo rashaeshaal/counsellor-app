@@ -1,0 +1,105 @@
+
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="arrow-back" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content style='font-family: Lexend, "Noto Sans", sans-serif;'>
+  <div class="container">
+    <div class="bg-decoration">
+      <div class="floating-shape shape-1"></div>
+      <div class="floating-shape shape-2"></div>
+      <div class="floating-shape shape-3"></div>
+    </div>
+
+    <div class="relative z-10 flex-1 flex flex-col">
+      <div class="flex p-6 flex-col items-center text-center text-[#111817]" *ngIf="counsellor; else loadingTemplate">
+        <div class="flex flex-col items-center gap-6">
+          <div
+            class="bg-center bg-no-repeat aspect-square bg-cover rounded-full min-h-36 w-36 shadow-lg border-2 border-[#14b8a6]"
+            [style.background-image]="'url(' + (counsellor.profile_photo ? apiUrl + counsellor.profile_photo : 'https://via.placeholder.com/150') + ')'"
+          ></div>
+          <div class="flex flex-col items-center">
+            <p class="text-[26px] font-extrabold leading-tight tracking-[-0.015em]">
+              {{ counsellor.name || 'Unknown Counsellor' }}
+            </p>
+          
+            <p class="text-base font-normal leading-normal mt-1">
+              {{ counsellor.experience || 0 }} years of experience
+            </p>
+            <div class="mt-4">
+              <button
+                class="btn btn-primary flex items-center gap-2 px-4 py-2 rounded-xl"
+                (click)="bookSession()"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  fill="currentColor"
+                  viewBox="0 0 256 256"
+                >
+                  <path
+                    d="M222.37,158.46l-47.11-21.11-.13-.06a16,16,0,0,0-15.17,1.4,8.12,8.12,0,0,0-.75.56L134.87,160c-15.42-7.49-31.34-23.29-38.83-38.51l20.78-24.71c.2-.25.39-.50.57-.77a16,16,0,0,0,1.32-15.06l0-.12L97.54,33.64a16,16,0,0,0-16.62-9.52A56.26,56.26,0,0,0,32,80c0,79.4,64.6,144,144,144a56.26,56.26,0,0,0,55.88-48.92A16,16,0,0,0,222.37,158.46ZM176,208A128.14,128.14,0,0,1,48,80A40.2,40.2,0,0,1,82.87,40a.61.61,0,0,0,0,.12l21,47L83.2,111.86a6.13,6.13,0,0,0-.57.77,16,16,0,0,0-1,15.70c9.06,18.53,27.73,37.06,46.46,46.11a16,16,0,0,0,15.75-1.14,8.44,8.44,0,0,0,.74-.56L168.89,152l47,21.05h0s.08,0,.11,0A40.21,40.21,0,0,1,176,208Z"
+                  ></path>
+                </svg>
+                <span>Call</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="counsellor" class="p-6">
+        <h3 class="text-[#111817] text-xl font-bold leading-tight tracking-[-0.015em] mb-4">About</h3>
+        <div class="bg-white p-4 rounded-lg shadow-md">
+          <div class="text-[#111817] text-base font-normal leading-relaxed flex flex-col gap-3">
+            <div class="flex items-center gap-4">
+              <ion-icon name="call-outline" class="text-[#0e9588] text-xl"></ion-icon>
+              <p><b>Phone:</b> {{ counsellor.phone_number || 'Not provided' }}</p>
+            </div>
+            <div class="flex items-center gap-4">
+              <ion-icon name="mail-outline" class="text-[#0e9588] text-xl"></ion-icon>
+              <p><b>Email:</b> {{ counsellor.email || 'Not provided' }}</p>
+            </div>
+            <div class="flex items-center gap-4">
+              <ion-icon name="person-outline" class="text-[#0e9588] text-xl"></ion-icon>
+              <p><b>Age:</b> {{ counsellor.age || 'Not provided' }}</p>
+            </div>
+            <div class="flex items-center gap-4">
+              <ion-icon name="transgender-outline" class="text-[#0e9588] text-xl"></ion-icon>
+              <p><b>Gender:</b> {{ counsellor.gender || 'Not provided' }}</p>
+            </div>
+            <div class="flex items-center gap-4">
+              <ion-icon name="school-outline" class="text-[#0e9588] text-xl"></ion-icon>
+              <p><b>Qualification:</b> {{ counsellor.qualification || 'Not provided' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #loadingTemplate>
+        <div class="flex flex-1 justify-center items-center">
+          <ion-spinner name="bubbles" class="text-[#111817]"></ion-spinner>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer>
+  <div class="p-4 bg-white">
+    <ion-button 
+      expand="block" 
+      class="h-14 font-bold rounded-full text-lg" 
+      style="--background: #0e9588;" 
+      (click)="bookSession()">
+      Book Session
+    </ion-button>
+  </div>
+</ion-footer>

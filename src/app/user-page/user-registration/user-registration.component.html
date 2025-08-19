@@ -1,27 +1,125 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>User Registration</ion-title>
-  </ion-toolbar>
-</ion-header>
+<div class="container">
+    <!-- Background shapes -->
+    <div class="bg-decoration">
+        <div class="floating-shape shape-1"></div>
+        <div class="floating-shape shape-2"></div>
+        <div class="floating-shape shape-3"></div>
+    </div>
 
-<ion-content class="ion-padding">
-  <form (ngSubmit)="register()">
-    <ion-item>
-      <ion-label position="floating">Name</ion-label>
-      <ion-input type="text" [(ngModel)]="name" name="name" required></ion-input>
-    </ion-item>
-    <ion-item>
-      <ion-label position="floating">Date of Birth</ion-label>
-      <ion-input type="date" [(ngModel)]="dob" name="dob" required></ion-input>
-    </ion-item>
-    <ion-item>
-      <ion-label>Gender</ion-label>
-      <ion-select [(ngModel)]="gender" name="gender" required>
-        <ion-select-option value="M">Male</ion-select-option>
-        <ion-select-option value="F">Female</ion-select-option>
-        <ion-select-option value="O">Other</ion-select-option>
-      </ion-select>
-    </ion-item>
-    <ion-button expand="full" type="submit" class="ion-margin-top">Register</ion-button>
-  </form>
-</ion-content>
+    <!-- Header -->
+    <div class="header">
+        <div class="back-btn" (click)="goBack()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"></path>
+            </svg>
+        </div>
+        <h2 class="header-title">Registration</h2>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="form-container">
+            <!-- Illustration -->
+            <div class="illustration">
+                <img
+                    alt="Registration illustration"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAry5AihENwxMNqNAS8qCcyRrQD8y3J2qWA5M_9-zWEW2p7TFv-mez4zcVd1VPHexbfC9NSWZYEuwPVk6Eq6iAw1U2yosvZQBrenIdcmKP16tfvmMZrNsBGtw5YFEqPenS2-IczXA4rWC6H-uSrXKkxWQW0g1lYoESgRZZNmVgNzUAlY7nXWGhRqJO1IEqbPgl1DtGyw3o5FDZ9vPIQ3_vEENaVaZ5cOjnlcI3hOJXmGpcoOCQbC7TMY8pxA1F2nhAL_X-QM2oFiUk"
+                />
+            </div>
+
+            <h1 class="main-title">Create Your Account</h1>
+            <p class="subtitle">Fill in your details to get started</p>
+
+            <form #registrationForm="ngForm" (ngSubmit)="register()">
+                <!-- Full Name -->
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            placeholder="Full Name"
+                            class="form-input"
+                            [(ngModel)]="name"
+                            required
+                            #nameInput="ngModel"
+                        />
+                    </div>
+                    <div *ngIf="nameInput.invalid && nameInput.touched" class="error-message">
+                        Full name is required
+                    </div>
+                </div>
+
+                <!-- Date of Birth -->
+                <div class="form-group">
+                    <div class="input-wrapper date-wrapper">
+                        <input
+                            matInput
+                            [matDatepicker]="picker"
+                            [max]="maxDate"
+                            [min]="minDate"
+                            id="dob"
+                            name="dob"
+                            placeholder="Date of Birth"
+                            class="date-input"
+                            [(ngModel)]="dob"
+                            (dateChange)="onDateChange($event)"
+                            required
+                            #dobInput="ngModel"
+                        />
+                        <mat-datepicker-toggle matIconSuffix [for]="picker">
+                            <mat-icon matDatepickerToggleIcon class="calendar-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#14b8a6" viewBox="0 0 24 24">
+                                    <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5zm2 4h4v4H7v-4z"/>
+                                </svg>
+                            </mat-icon>
+                        </mat-datepicker-toggle>
+                        <mat-datepicker #picker></mat-datepicker>
+                    </div>
+                    <div *ngIf="dobInput.invalid && dobInput.touched" class="error-message">
+                        Date of birth is required
+                    </div>
+                    <div *ngIf="dobInput.errors?.['matDatepickerMin'] && dobInput.touched" class="error-message">
+                        Date of birth cannot be before {{ minDate | date:'shortDate' }}
+                    </div>
+                    <div *ngIf="dobInput.errors?.['matDatepickerMax'] && dobInput.touched" class="error-message">
+                        Date of birth cannot be after {{ maxDate | date:'shortDate' }}
+                    </div>
+                </div>
+
+                <!-- Gender -->
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        <select
+                            id="gender"
+                            name="gender"
+                            class="form-select"
+                            [(ngModel)]="gender"
+                            required
+                            #genderInput="ngModel"
+                        >
+                            <option value="" disabled>Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div *ngIf="genderInput.invalid && genderInput.touched" class="error-message">
+                        Gender is required
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <footer class="footer">
+                    <button
+                        type="submit"
+                        class="register-btn"
+                        [disabled]="registrationForm.invalid"
+                    >
+                        <span>Register</span>
+                    </button>
+                </footer>
+            </form>
+        </div>
+    </main>
+</div>

@@ -1,21 +1,39 @@
-<ion-header>
-  <ion-toolbar style="#33CEA4">
-    <ion-title>Counsellor App</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content class="bg-white" [fullscreen]="true">
+  <div class="container relative flex flex-col min-h-full justify-between overflow-x-hidden">
+    <!-- Animated background -->
+    <div class="background absolute inset-0 z-[-1]"></div>
 
-<ion-content [fullscreen]="true" class="ion-padding">
-  <div class="wave-bg">
-    <div class="wave-layer-1"></div>
-    <div class="wave-layer-2"></div>
-  </div>
-  
-  <div class="button-group">
-    <ion-button expand="block" shape="round" style="#33CEA4" (click)="goToUserHelp()">
-      I Need Help
-    </ion-button>
-    <ion-button expand="block" shape="round" style="#33CEA4" (click)="goToCounsellorRegister()">
-      Duty Counsellor Registration
-    </ion-button>
+    <!-- Floating orbs -->
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+    <div class="orb orb4"></div>
+
+    <!-- Header -->
+    <header class="w-full pt-8 pb-6 text-center relative z-[1]">
+      <h1 class="app-title">Manshanthi</h1>
+      <p class="app-subtitle">Your path to mental wellness</p>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex flex-col items-center justify-center flex-grow px-4 relative z-[1]">
+      <div class="illustration-container">
+        <div class="illustration-wrapper">
+          <img
+            alt="A friendly illustration showing two people having a supportive conversation."
+            class="illustration-img"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCv465xTKg6bVGaV_IIjwAEKOR9hn9IN3yQyAcl2zCOEmwiUpx1G89MWnjoFsCiLoosM7pifdf1o3ScZNBZOGXI9NuxVpvqUstuZUj0d7ZnJ6P5rJSOKc97d7ukj0a0MBnEch51nOzqAR5jD2LLWWr_QQToMaluGrL4aIETaCpLAVCEJ_LGN4AaTWaAAxhn-CXJUJ51_PdTmoiYCoYsW3ElMk29BX0yO4tYaCLwvdEiCjSth0xOsG_jYh1k0cwwOEzSlJtNlnQJmuE"
+          />
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="button-container">
+        <button class="btn btn-primary" (click)="goToUserHelp()">I Need Help</button>
+        <button class="btn btn-secondary" (click)="goToCounsellorRegister()">I’m a Counselor</button>
+      </div>
+    </main>
+
+    <footer class="h-8 relative z-[1]"></footer>
   </div>
 </ion-content>

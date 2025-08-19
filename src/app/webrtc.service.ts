@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -27,6 +27,8 @@ export class WebrtcService {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 3;
   private isInitiator = false; // Track if this instance initiated the call
+  private callTimer: any = null;
+  private callStartTime: number | null = null;
 
   constructor(private http: HttpClient) {}
 
@@ -82,6 +84,7 @@ export class WebrtcService {
         case 'connected':
           this.callStateSubject.next('connected');
           this.reconnectAttempts = 0;
+          this.callStartTime = Date.now(); // Record call start time
           break;
         case 'connecting':
           this.callStateSubject.next('connecting');
@@ -161,8 +164,11 @@ export class WebrtcService {
   }
 
   // User initiates call (from checkout component)
-  async startCall(bookingId: number, constraints: MediaConstraints = { audio: true, video: false }, accessToken?: string): Promise<void> {
+  async startCall(bookingId: number, constraints: MediaConstraints = { audio: true, video: false }, accessToken?: string, sessionDuration?: number): Promise<void> {
     try {
+      if (sessionDuration) {
+        this.startCallTimer(sessionDuration);
+      }
       this.bookingId = bookingId;
       this.accessToken = accessToken || localStorage.getItem('access_token') || null;
       this.currentMediaConstraints = constraints;
@@ -217,8 +223,11 @@ export class WebrtcService {
   }
 
   // Counsellor accepts incoming call
-  async acceptIncomingCall(bookingId: number, constraints: MediaConstraints = { audio: true, video: false }, accessToken?: string): Promise<void> {
+  async acceptIncomingCall(bookingId: number, constraints: MediaConstraints = { audio: true, video: false }, accessToken?: string, sessionDuration?: number): Promise<void> {
     try {
+        if (sessionDuration) {
+            this.startCallTimer(sessionDuration);
+        }
         this.bookingId = bookingId;
         this.accessToken = accessToken || localStorage.getItem('access_token') || null;
         this.currentMediaConstraints = constraints;
@@ -271,14 +280,13 @@ export class WebrtcService {
         console.log('WebSocket connected for accepting call');
         this.callStateSubject.next('connecting');
         
-        // Send call accepted message
+        // Send a message to signal that the counsellor's peer connection is ready
         this.sendMessage({
-            type: 'call_accepted',
-            booking_id: this.bookingId,
-            user_type: 'counsellor'
+            type: 'counsellor_ready',
+            booking_id: this.bookingId
         });
         
-        console.log('Call accepted message sent, waiting for offer...');
+        console.log('Counsellor ready message sent, waiting for offer...');
         
     } catch (error) {
         console.error('Error accepting incoming call:', error);
@@ -410,17 +418,22 @@ export class WebrtcService {
             break;
             
         case 'call_accepted':
-            // User receives this when counsellor accepts
-            console.log('Call accepted by counsellor, user should create offer');
-            this.callStateSubject.next('connecting');
+            // This message is now primarily for the counsellor's UI.
+            // The user's client will wait for 'counsellor_ready'.
+            console.log('Call accepted message received, user waiting for counsellor to be ready.');
             this.messageSubject.next(message);
+            break;
             
-            // If user initiated the call, create offer now
+        case 'counsellor_ready':
+            // User receives this when the counsellor's peer connection is set up.
+            // This is the reliable trigger to create the offer.
+            console.log('Counsellor is ready, user will now create offer.');
+            this.callStateSubject.next('connecting');
+
             if (this.isInitiator) {
                 console.log('User is initiator, creating offer...');
-                setTimeout(() => {
-                    this.createOffer();
-                }, 1000); // Increased delay to ensure counsellor is ready
+                // No delay needed
+                this.createOffer();
             }
             break;
             
@@ -461,6 +474,18 @@ export class WebrtcService {
             this.messageSubject.next(message);
     }
 }
+
+  private startCallTimer(durationInMinutes: number) {
+    if (this.callTimer) {
+        clearTimeout(this.callTimer);
+    }
+    const durationInMs = durationInMinutes * 60 * 1000;
+    console.log(`Call will automatically end in ${durationInMinutes} minutes.`);
+    this.callTimer = setTimeout(() => {
+        console.log(`Session duration of ${durationInMinutes} minutes ended. Ending call.`);
+        this.endCall();
+    }, durationInMs);
+  }
 
 
   private async handleOffer(message: any) {
@@ -703,18 +728,44 @@ export class WebrtcService {
   endCall(): void {
     console.log('Ending call...');
     
+    let actualDuration: number | undefined;
+    if (this.callStartTime) {
+        const durationInMs = Date.now() - this.callStartTime;
+        actualDuration = Math.round(durationInMs / (1000 * 60)); // Duration in minutes
+        console.log(`Actual call duration: ${actualDuration} minutes`);
+    }
+
     if (this.websocket && this.websocket.readyState === WebSocket.OPEN) {
       this.sendMessage({
         type: 'call_ended',
         booking_id: this.bookingId,
-        user_type: this.isInitiator ? 'user' : 'counsellor'
+        user_type: this.isInitiator ? 'user' : 'counsellor',
+        actual_duration: actualDuration // Include actual_duration in WebSocket message
       });
+    }
+
+    // Send actual_duration to backend /dashboard/end_call/
+    if (this.bookingId && actualDuration !== undefined) {
+        const headers = new HttpHeaders({
+            'Authorization': `Bearer ${localStorage.getItem('access_token') ?? ''}`
+        });
+        this.http.post(`${environment.apiUrl}/api/dashboard/end_call/`, {
+            booking_id: this.bookingId,
+            actual_duration: actualDuration
+        }, { headers }).subscribe({
+            next: (response) => console.log('End call API success:', response),
+            error: (error) => console.error('End call API error:', error)
+        });
     }
 
     this.cleanup();
   }
 
   private cleanup(): void {
+    if (this.callTimer) {
+        clearTimeout(this.callTimer);
+        this.callTimer = null;
+    }
     console.log('Cleaning up WebRTC resources...');
 
     if (this.localStream) {

@@ -1,9 +1,210 @@
-h2 {
-  font-size: 24px;
-  color: var(--ion-color-primary);
+/* Global Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-p {
-  font-size: 16px;
-  color: var(--ion-color-medium);
+/* Ensure space for fixed footer */
+.group\/design-root {
+    padding-bottom: 88px; /* space for ion-footer */
+}
+
+/* Background Decorations */
+.bg-decoration {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.floating-shape {
+    position: absolute;
+    opacity: 0.25;
+    animation: float 10s ease-in-out infinite;
+}
+
+.shape-1 {
+    width: 180px;
+    height: 180px;
+    background: linear-gradient(45deg, #14b8a6, #a7f3d0);
+    border-radius: 50%;
+    top: 5%;
+    left: -15%;
+    animation-delay: 0s;
+}
+
+.shape-2 {
+    width: 140px;
+    height: 140px;
+    background: linear-gradient(45deg, #f9a8d4, #f3d2e6);
+    border-radius: 50%;
+    top: 20%;
+    right: -20%;
+    animation-delay: -3s;
+}
+
+.shape-3 {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(45deg, #93c5fd, #dbeafe);
+    border-radius: 50%;
+    bottom: 10%;
+    left: 5%;
+    animation-delay: -6s;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    33% { transform: translateY(-30px) rotate(90deg); }
+    66% { transform: translateY(15px) rotate(180deg); }
+}
+
+/* Header */
+.back-btn {
+    color: #111817;
+    display: flex;
+    width: 48px;
+    height: 48px;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.back-btn:hover {
+    transform: scale(1.15) rotate(5deg);
+}
+
+/* Profile Card */
+.profile-card {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(145deg, #ffffff, #f0f9ff);
+    min-height: 80px;
+    border-width: 2px;
+    touch-action: manipulation;
+}
+
+.profile-card:hover {
+    border-color: #14b8a6;
+    box-shadow: 0 8px 16px rgba(20, 184, 166, 0.25),
+                0 12px 30px rgba(0, 0, 0, 0.1);
+    transform: translateY(-6px) scale(1.03);
+    background: linear-gradient(145deg, #e6f5f3, #ccfbf1);
+}
+
+.profile-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, #14b8a6, transparent);
+    transition: left 0.4s ease;
+}
+
+.profile-card:hover::before {
+    left: 100%;
+}
+
+/* Profile Image */
+.profile-image {
+    border: 2px solid #14b8a6;
+    box-shadow: 0 3px 8px rgba(20, 184, 166, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-card:hover .profile-image {
+    transform: scale(1.15) rotate(5deg);
+    box-shadow: 0 4px 10px rgba(20, 184, 166, 0.3);
+}
+
+/* Buttons */
+.save-btn, .cancel-btn {
+    width: 100%;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.save-btn {
+    background: linear-gradient(45deg, #0e9588, #14b8a6);
+    color: white;
+    box-shadow: 0 8px 20px rgba(14, 149, 136, 0.3);
+}
+
+.save-btn:hover {
+    background: linear-gradient(45deg, #f9a8d4, #14b8a6);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(14, 149, 136, 0.4);
+}
+
+.save-btn:active {
+    transform: translateY(0);
+}
+
+.save-btn:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.cancel-btn {
+    background: #f0f4f4;
+    color: #111817;
+}
+
+.cancel-btn:hover {
+    background: #d0d9d9;
+    transform: translateY(-2px);
+}
+
+/* Messages */
+.error-message {
+    color: #f43f5e;
+    font-size: 14px;
+    margin-top: 4px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.success-message {
+    color: #14b8a6;
+    font-size: 14px;
+    margin-top: 4px;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 360px) {
+    .profile-card {
+        padding: 12px;
+        min-height: 70px;
+    }
+
+    .profile-image {
+        width: 12px;
+        height: 12px;
+    }
+
+    .profile-card h2 {
+        font-size: 14px;
+    }
+
+    .save-btn, .cancel-btn {
+        height: 44px;
+        font-size: 14px;
+    }
 }

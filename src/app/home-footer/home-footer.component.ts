@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { NavController } from '@ionic/angular';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home-footer',
@@ -10,7 +10,7 @@ import { NavController } from '@ionic/angular';
 })
 export class HomeFooterComponent  implements OnInit {
 
-  constructor(private http: HttpClient, private navCtrl: NavController) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
   ngOnInit() {
     console.log('HomeFooterComponent: Initialized');
@@ -18,7 +18,7 @@ export class HomeFooterComponent  implements OnInit {
 
   navigateTo(page: string) {
     console.log('HomeFooterComponent: Navigating to:', page);
-    this.navCtrl.navigateForward(page).then(success => {
+    this.router.navigateByUrl(page).then(success => {
       console.log('HomeFooterComponent: Navigation to', page, success ? 'Successful' : 'Failed');
     }).catch(error => {
       console.error('HomeFooterComponent: Navigation error:', error);

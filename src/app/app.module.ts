@@ -1,4 +1,4 @@
-import { Injector, NgModule } from '@angular/core';
+import { Injector, NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
 
@@ -37,7 +37,16 @@ import { CallComponent } from './user-dashboard/call/call.component';
 import { AuthService } from './services/auth.service';
 import { CounsellorRegisterComponent } from './counsellor/counsellor-register/counsellor-register.component';
 import { ProblemSelectionComponent } from './problem-selection/problem-selection.component';
-import { UserRegistrationComponent } from './user-page/user-registration/user-registration.component';
+
+
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ViewCounsellorProfileComponent } from './components/view-counsellor-profile/view-counsellor-profile.component';
+
+
 export function authInterceptor() {
   return (req: HttpRequest<any>, next: HttpHandlerFn): Observable<HttpEvent<any>> => {
     const accessToken = localStorage.getItem('access_token');
@@ -70,7 +79,6 @@ let appInjector: Injector;
     CounsellorProfileComponent,
     CounsellorDashboardComponent,
     FooterComponent,
-    HomeFooterComponent,
     UserProfileComponent,
     UserNotificationsComponent,
     UserDashboardComponent,
@@ -79,12 +87,9 @@ let appInjector: Injector;
     CheckoutComponent,
     CounsellorCallComponent,
     CallComponent,
-    CounsellorRegisterComponent,  // Ensure this component is declared
-    CounsellorLoginComponent, // Ensure this component is declared
-    CounsellorDashboardComponent, // Ensure this component is declared
-    CounsellorProfileComponent, // Ensure this component is declared
-    CounsellorNotificationsComponent,
-    UserRegistrationComponent
+    CounsellorRegisterComponent,
+    ViewCounsellorProfileComponent,
+    HomeFooterComponent,
     ],
   imports: [
     BrowserModule,
@@ -96,7 +101,14 @@ let appInjector: Injector;
     HttpClientModule,
     CommonModule,
     SocketIoModule,
-    ProblemSelectionComponent
+    ProblemSelectionComponent,
+    MatFormFieldModule,
+    MatInputModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    BrowserAnimationsModule,
+
+   
   ],
   providers: [
     AuthService,
@@ -108,5 +120,6 @@ let appInjector: Injector;
     provideFirestore(() => getFirestore())
   ],
   bootstrap: [AppComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class AppModule {}

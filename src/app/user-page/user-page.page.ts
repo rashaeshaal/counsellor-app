@@ -31,6 +31,15 @@ export class UserPagePage implements OnInit {
   testPhoneNumbers: { [key: string]: string } = {
     '+917510780558': '789654',
     '+918547905362': '123456',
+    '+917744778540':'123456',
+    '+919988774455': '123456',
+    '+918855221144':'123456',
+    '+917878789696':'123456',
+    '+919744002048':'123456',
+    '+918129602048':'123456',
+    
+
+  
   };
 
   private recaptchaVerifier!: RecaptchaVerifier;
@@ -40,7 +49,7 @@ export class UserPagePage implements OnInit {
     private toastCtrl: ToastController,
     private auth: AuthService,
     private angularFireAuth: Auth,
-    private router: Router
+    public router: Router
   ) {}
 
   ngOnInit() {
@@ -68,7 +77,7 @@ export class UserPagePage implements OnInit {
         return;
       }
 
-      this.isLoading = true; // Set loading state
+      this.isLoading = true;
       const phoneNumber = '+91' + this.form.value.phone;
 
       // Check SMS limit in production mode or use test number
@@ -110,10 +119,19 @@ export class UserPagePage implements OnInit {
       const modal = await this.modalCtrl.create(options);
       await modal.present();
       const { data } = await modal.onWillDismiss();
+      
       if (data?.success) {
         this.form.reset();
-        console.log('Login successful, navigating to user-dashboard');
-        this.router.navigate(['/problem-selection']);
+        console.log('Login successful, checking user type...');
+        
+        // Navigate based on whether user is new or existing
+        if (data.is_new_user) {
+          console.log('New user detected, navigating to user-registration');
+          this.router.navigate(['/user-registration']); // Ensure this path matches routing
+        } else {
+          console.log('Existing user detected, navigating to user-dashboard');
+          this.router.navigate(['/user-dashboard']);
+        }
       }
     } catch (e: any) {
       console.error('Sign-in error:', e);
@@ -122,7 +140,7 @@ export class UserPagePage implements OnInit {
         this.showToast('Phone authentication not enabled or billing issue. Use test numbers.', 'danger');
       }
     } finally {
-      this.isLoading = false; // Reset loading state
+      this.isLoading = false;
     }
   }
 
