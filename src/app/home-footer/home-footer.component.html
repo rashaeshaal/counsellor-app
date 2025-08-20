@@ -16,7 +16,7 @@
 
   <a
     class="just flex flex-1 flex-col items-center justify-end gap-1 text-[#618985]"
-    (click)="navigateTo('/counsellor-dashboard')"
+    (click)="navigateTo('/sessions/on-progress')"
   >
     <div class="text-[#618985] flex h-8 items-center justify-center" data-icon="Calendar" data-size="24px" data-weight="regular">
       <!-- Sessions Icon -->
@@ -26,22 +26,20 @@
         ></path>
       </svg>
     </div>
-    <p class="text-[#618985] text-xs font-medium leading-normal tracking-[0.015em]">Sessions</p>
+    <p class="text-[#618985] text-xs font-medium leading-normal tracking-[0.015em]">On Progress</p>
   </a>
 
   <a
     class="just flex flex-1 flex-col items-center justify-end gap-1 text-[#618985]"
-    (click)="navigateTo('/settings')"
+    (click)="navigateTo('/wallet')"
   >
-    <div class="text-[#618985] flex h-8 items-center justify-center" data-icon="ChatCircleDots" data-size="24px" data-weight="regular">
-      <!-- Chat Icon -->
+    <div class="text-[#618985] flex h-8 items-center justify-center" data-icon="Wallet" data-size="24px" data-weight="regular">
+      <!-- Wallet Icon -->
       <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-        <path
-          d="M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128ZM84,116a12,12,0,1,0,12,12A12,12,0,0,0,84,116Zm88,0a12,12,0,1,0,12,12A12,12,0,0,0,172,116Zm60,12A104,104,0,0,1,79.12,219.82L45.07,231.17a16,16,0,0,1-20.24-20.24l11.35-34.05A104,104,0,1,1,232,128Zm-16,0A88,88,0,1,0,51.81,172.06a8,8,0,0,1,.66,6.54L40,216,77.4,203.53a7.85,7.85,0,0,1,2.53-.42,8,8,0,0,1,4,1.08A88,88,0,0,0,216,128Z"
-        ></path>
+        <path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM40,56H216V80H40ZM216,200H40V96H216V200Zm-40-88a8,8,0,1,1-8,8A8,8,0,0,1,176,112Z"></path>
       </svg>
     </div>
-    <p class="text-[#618985] text-xs font-medium leading-normal tracking-[0.015em]">Chat</p>
+    <p class="text-[#618985] text-xs font-medium leading-normal tracking-[0.015em]">Wallet</p>
   </a>
 
   <a

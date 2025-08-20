@@ -37,6 +37,7 @@ import { CallComponent } from './user-dashboard/call/call.component';
 import { AuthService } from './services/auth.service';
 import { CounsellorRegisterComponent } from './counsellor/counsellor-register/counsellor-register.component';
 import { ProblemSelectionComponent } from './problem-selection/problem-selection.component';
+import { WalletComponent } from './wallet/wallet.component';
 
 
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -90,6 +91,7 @@ let appInjector: Injector;
     CounsellorRegisterComponent,
     ViewCounsellorProfileComponent,
     HomeFooterComponent,
+    WalletComponent, // Added WalletComponent
     ],
   imports: [
     BrowserModule,

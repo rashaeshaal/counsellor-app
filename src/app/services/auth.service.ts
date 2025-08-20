@@ -21,7 +21,7 @@ export class AuthService {
 
   private verificationId: string | null = null; // Stores the verification ID received from Firebase
   private confirmationResult: ConfirmationResult | null = null; 
-  private bpiUrl = 'http://localhost:8000'; 
+  private bpiUrl = 'http://192.168.1.34:8000/'; 
 
   constructor(private auth: Auth, private http: HttpClient) {
     // Ensure Firebase app is initialized before attempting any auth operations
