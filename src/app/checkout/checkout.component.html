@@ -1,100 +1,128 @@
-<ion-page>
-<ion-content class="bg-white" style='font-family: Lexend, "Noto Sans", sans-serif;'>
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goToDashboard()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Checkout</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
   <div class="container">
-    <div class="bg-decoration">
-      <div class="floating-shape shape-1"></div>
-      <div class="floating-shape shape-2"></div>
-      <div class="floating-shape shape-3"></div>
-    </div>
-    <div class="relative z-10">
-    
-  <div>
-    <!-- Header -->
-    <div class="flex items-center bg-white p-4 pb-2 justify-between">
-      <div class="text-[#111817] flex size-12 shrink-0 items-center cursor-pointer" (click)="goToDashboard()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-          <path
-            d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"
-          ></path>
-        </svg>
-      </div>
-      <h2
-        class="text-[#111817] text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12"
-      >
-        Checkout
-      </h2>
-    </div>
-
-    <!-- Session Details -->
-    <h3 class="text-[#111817] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">
-      Session Details 
-    </h3>
-    <div class="flex items-center gap-4 bg-white px-4 min-h-[72px] py-2">
-      <div class="w-28 h-28 rounded-full overflow-hidden mb-6 border-4 border-white shadow-lg">
-        <img alt="Counselor Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDk3XctobyavS7LKd4tCF05DAOjgZUYoCe0vwKo7xaTOKJy_YbQm063Zi8trlhzaJLCyOFRfbaHmMt7TOT1LVW1YH7qKln55wa7mh13O8UVaK5Csf2MIJdHNk9MZJPDnDzIkDq2cezdac1lJoVNjGGabl67DrOJSwFsuYqJjeRa13d0Yc5tqkblmPuKETkSYqCgAO7eBtG3mCPkPw20Rt7PpqBjGKwpvNlRRv7-WDC4puIeKkfchF-20M8qLrS7Xrgjyt01TFbSjFM"/>
+        <!-- Background Decoration -->
+        <div class="bg-decoration">
+            <div class="floating-shape shape-1"></div>
+            <div class="floating-shape shape-2"></div>
+            <div class="floating-shape shape-3"></div>
         </div>
-      <div class="flex flex-col justify-center">
-        <p class="text-[#111817] text-base font-medium leading-normal line-clamp-1">
-          {{ paymentSettings?.counsellor_name || counsellor.name }}
-        </p>
-        <p class="text-[#618985] text-sm font-normal leading-normal line-clamp-2">
-          {{ counsellor.specialization ?? '' }}
-        </p>
-      </div>
-    </div>
-    <div class="p-4 grid grid-cols-[20%_1fr] gap-x-6">
-      <div class="col-span-2 grid grid-cols-subgrid border-t border-t-[#dbe6e5] py-5">
-        <p class="text-[#618985] text-sm font-normal leading-normal">Date</p>
-        <p class="text-[#111817] text-sm font-normal leading-normal">{{ sessionDate }}</p>
-      </div>
-      <div class="col-span-2 grid grid-cols-subgrid border-t border-t-[#dbe6e5] py-5">
-        <p class="text-[#618985] text-sm font-normal leading-normal">Time</p>
-        <p class="text-[#111817] text-sm font-normal leading-normal">{{ sessionTime }}</p>
-      </div>
-      <div class="col-span-2 grid grid-cols-subgrid border-t border-t-[#dbe6e5] py-5">
-        <p class="text-[#618985] text-sm font-normal leading-normal">Duration</p>
-        <p class="text-[#111817] text-sm font-normal leading-normal">{{ sessionDuration }} mins</p>
-      </div>
-      <div class="col-span-2 grid grid-cols-subgrid border-t border-t-[#dbe6e5] py-5">
-        <p class="text-[#618985] text-sm font-normal leading-normal">Price</p>
-        <p class="text-[#111817] text-sm font-normal leading-normal">{{ sessionPrice || counsellor.price | currency }}</p>
-      </div>
-    </div>
 
-    <!-- Payment Method -->
-    <h3 class="text-[#111817] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">
-      Payment Method
-    </h3>
-    <div class="flex items-center gap-4 bg-white px-4 min-h-[72px] py-2 justify-between">
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2">
-          <ion-icon name="card-outline" class="text-[#0e9588] text-2xl" aria-label="Credit/Debit Card"></ion-icon>
-          <ion-icon name="wallet-outline" class="text-[#0e9588] text-2xl" aria-label="UPI/Wallet"></ion-icon>
-        </div>
-        <div class="flex flex-col justify-center">
-          <p class="text-[#111817] text-base font-medium leading-normal line-clamp-1">
-            Credit Card / UPI
-          </p>
-          <p class="text-[#618985] text-sm font-normal leading-normal line-clamp-2">
-            .... 4242
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Counselor Hero Section -->
+            <div class="counselor-hero">
+                <div class="counselor-avatar-container">
+                    <div class="avatar-ring"></div>
+                    <img class="counselor-avatar" 
+                         [src]="counsellor.profile_photo ? apiUrl + counsellor.profile_photo : 'https://via.placeholder.com/150'" 
+                         alt="{{ counsellor.name }}">
+                </div>
+                <h2 class="counselor-name">{{ counsellor.name }}</h2>
+                <p class="counsellor-specialty">{{ counsellor.specialization || 'General Counseling' }}</p>
+                <div class="rating-display">
+                    <div class="stars">
+                        <i class="fas fa-star star"></i>
+                        <i class="fas fa-star star"></i>
+                        <i class="fas fa-star star"></i>
+                        <i class="fas fa-star star"></i>
+                        <i class="fas fa-star star"></i>
+                    </div>
+                    
+                </div>
+            </div>
 
-  <!-- Confirm Button -->
-  <div>
-    <div class="flex px-4 py-3">
-      <button
-        class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-5 flex-1 bg-[#0e9588] text-white text-base font-bold leading-normal tracking-[0.015em]"
-        (click)="initiatePayment()"
-      >
-        <span class="truncate">Confirm Booking</span>
-      </button>
+            <!-- Session Details -->
+            <div class="session-details">
+                <h3 class="card-title">
+                    <i class="fas fa-calendar-check"></i>
+                    Session Details
+                </h3>
+                
+                <div class="detail-grid">
+                    <div class="detail-row">
+                        <div class="detail-icon">
+                            <ion-icon name="calendar-outline"></ion-icon>
+                        </div>
+                        <div class="detail-content">
+                            <div class="detail-label">Date</div>
+                            <div class="detail-value">{{ sessionDate }}</div>
+                        </div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-icon">
+                            <ion-icon name="time-outline"></ion-icon>
+                        </div>
+                        <div class="detail-content">
+                            <div class="detail-label">Time</div>
+                            <div class="detail-value">{{ sessionTime }}</div>
+                        </div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-icon">
+                            <ion-icon name="hourglass-outline"></ion-icon>
+                        </div>
+                        <div class="detail-content">
+                            <div class="detail-label">Duration</div>
+                            <div class="detail-value">{{ sessionDuration }} minutes</div>
+                        </div>
+                    </div>
+
+                    <div class="detail-row">
+                        <div class="detail-icon">
+                            <ion-icon name="videocam-outline"></ion-icon>
+                        </div>
+                        <div class="detail-content">
+                            <div class="detail-label">Session Type</div>
+                            <div class="detail-value">Audio Call</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price Summary -->
+                <div class="price-summary">
+                    <div class="price-row">
+                        <span class="price-label">Session Fee</span>
+                        <span class="price-value">₹{{ sessionPrice }}</span>
+                    </div>
+                    <div class="price-row">
+                        <span class="price-label">Total Amount</span>
+                        <span class="price-value">₹{{ sessionPrice }}</span>
+                    </div>
+                </div>
+                <div class="floating-confirm" style="position: relative; margin-top: 20px;">
+                    <button class="confirm-button" (click)="initiatePayment()">
+                        <div class="button-content">
+                            <div class="button-text">
+                                <div class="button-title">Confirm Booking</div>
+                              
+                            </div>
+                            <i class="fas fa-arrow-right button-arrow"></i>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+           
+
+        </div> <!-- Close main-content -->
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner"></div>
+        </div>
     </div>
-  </div>
-  </div>
-  </div>
 </ion-content>
-</ion-page>
+

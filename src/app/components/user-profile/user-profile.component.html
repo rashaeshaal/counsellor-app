@@ -1,206 +1,210 @@
 <ion-page>
-<ion-content class="bg-white"><div class="relative flex size-full min-h-screen flex-col bg-white justify-between group/design-root overflow-x-hidden" style='font-family: Lexend, "Noto Sans", sans-serif;'>
+<ion-content class="bg-white">
+  <div class="relative flex size-full min-h-screen flex-col bg-white justify-between group/design-root overflow-x-hidden" style='font-family: Lexend, "Noto Sans", sans-serif;'>
     <!-- Background Decoration for Floating Shapes -->
     <div class="bg-decoration">
-        <div class="floating-shape shape-1"></div>
-        <div class="floating-shape shape-2"></div>
-        <div class="floating-shape shape-3"></div>
+      <div class="floating-shape shape-1"></div>
+      <div class="floating-shape shape-2"></div>
+      <div class="floating-shape shape-3"></div>
     </div>
 
     <div>
-        <div class="flex items-center bg-white p-4 pb-2 justify-between">
-            <h2 class="text-[#111817] text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pl-12">Profile</h2>
-            <div class="flex w-12 items-center justify-end z-10">
-                <button
-                    type="button"
-                    class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 bg-transparent text-[#111817] gap-2 text-base font-bold leading-normal tracking-[0.015em] min-w-0 p-0 hover:bg-gray-100 transition-colors"
-                    (click)="toggleEditMode()"
-                    [attr.aria-label]="editMode ? 'Cancel editing' : 'Edit profile'"
-                >
-                    <div class="text-[#111817]" data-icon="Pencil" data-size="24px" data-weight="regular">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                            <path d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.69Z"></path>
-                        </svg>
-                    </div>
-                </button>
+      <!-- Enhanced Header -->
+      <div class="header-enhanced">
+     
+        <div class="header-spacer"></div>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-container">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading profile...</div>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error && !loading" class="error-container">
+        <div class="error-icon">⚠️</div>
+        <div class="error-text">{{ error }}</div>
+      </div>
+
+      <!-- View Mode - Enhanced -->
+      <div *ngIf="user && !editMode && !loading" class="profile-container">
+        <div class="profile-view-enhanced">
+          <div class="profile-header-section">
+            <div class="profile-image-container">
+              <div
+                class="profile-image-enhanced"
+                [style.background-image]="user.profile_photo ? 'url(' + user.profile_photo + ')' : 'url(https://lh3.googleusercontent.com/aida-public/AB6AXuBNDNTHkCT_irRd0FOe54SCnHKSZawgOY75WtbEL6QKFrGAMH3Vny4GmacW4ZaKS5mNB4ZY5H1IlQZod4JNE6rRc8ILRpyXgi5452cyrFdSVUk2T4aZXirDFAd4ZAxGrdLnMFP03zX5vZl_eLAd54j3bj7rklm7oPqI0Ow0xXvpT685j44gBg_NuTEet7oOtoOFOrVCfO8JaL0aKoHLdMxCosCRTdhQaJiXgeqPCKBKfN8SLreGWhOK5cpeyA1eTE42vF1D-tiIOV3_)'"
+              ></div>
             </div>
-        </div>
-
-        <!-- Loading State -->
-        <div *ngIf="loading" class="flex justify-center items-center p-8">
-            <div class="text-[#618985]">Loading profile...</div>
-        </div>
-
-        <!-- Error State -->
-        <div *ngIf="error && !loading" class="flex justify-center items-center p-8">
-            <div class="text-red-500">{{ error }}</div>
-        </div>
-
-        <!-- View Mode -->
-        <div *ngIf="user && !editMode && !loading" class="flex p-4 @container">
-            <div class="flex w-full flex-col gap-4 items-center">
-                <div class="flex gap-4 flex-col items-center">
-                    <div
-                        class="bg-center bg-no-repeat aspect-square bg-cover rounded-full min-h-32 w-32 profile-image"
-                        [style.background-image]="user.profile_photo ? 'url(' + user.profile_photo + ')' : 'url(https://lh3.googleusercontent.com/aida-public/AB6AXuBNDNTHkCT_irRd0FOe54SCnHKSZawgOY75WtbEL6QKFrGAMH3Vny4GmacW4ZaKS5mNB4ZY5H1IlQZod4JNE6rRc8ILRpyXgi5452cyrFdSVUk2T4aZXirDFAd4ZAxGrdLnMFP03zX5vZl_eLAd54j3bj7rklm7oPqI0Ow0xXvpT685j44gBg_NuTEet7oOtoOFOrVCfO8JaL0aKoHLdMxCosCRTdhQaJiXgeqPCKBKfN8SLreGWhOK5cpeyA1eTE42vF1D-tiIOV3_)'"
-                    ></div>
-                    
-                    <div class="flex flex-col items-center justify-center">
-                        <p class="text-[#111817] text-[22px] font-bold leading-tight tracking-[-0.015em] text-center">{{ user.name || 'No name set' }}</p>
-                        <p class="text-[#618985] text-base font-normal leading-normal text-center">{{ user.age || 'Age not set' }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Edit Mode -->
-        <div *ngIf="editMode && editableUser && !loading" class="p-4">
-            <form (ngSubmit)="updateProfile()" #profileForm="ngForm" novalidate>
-                <div class="flex flex-col gap-6">
-                    <!-- Profile Photo Preview -->
-                    <div class="flex flex-col items-center gap-4">
-                        <div
-                            class="bg-center bg-no-repeat aspect-square bg-cover rounded-full min-h-32 w-32 profile-image"
-                            [style.background-image]="editableUser.profile_photo ? 'url(' + editableUser.profile_photo + ')' : 'url(https://lh3.googleusercontent.com/aida-public/AB6AXuBNDNTHkCT_irRd0FOe54SCnHKSZawgOY75WtbEL6QKFrGAMH3Vny4GmacW4ZaKS5mNB4ZY5H1IlQZod4JNE6rRc8ILRpyXgi5452cyrFdSVUk2T4aZXirDFAd4ZAxGrdLnMFP03zX5vZl_eLAd54j3bj7rklm7oPqI0Ow0xXvpT685j44gBg_NuTEet7oOtoOFOrVCfO8JaL0aKoHLdMxCosCRTdhQaJiXgeqPCKBKfN8SLreGWhOK5cpeyA1eTE42vF1D-tiIOV3_)'"
-                        ></div>
-                    </div>
-                    
-                    <!-- Name Field -->
-                    <div class="flex flex-col gap-2">
-                        <label class="text-[#111817] text-base font-medium leading-normal">Name</label>
-                        <input 
-                            [(ngModel)]="editableUser.name"
-                            name="name" 
-                            placeholder="Enter your name" 
-                            required 
-                            class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111817] focus:outline-0 focus:ring-2 focus:ring-[#019863] border border-[#d0d9d9] bg-white placeholder:text-[#618985] p-[15px] text-base font-normal leading-normal"
-                        />
-                    </div>
-                    
-                    <!-- Age Field -->
-                    <div class="flex flex-col gap-2">
-                        <label class="text-[#111817] text-base font-medium leading-normal">Age</label>
-                        <input 
-                            [(ngModel)]="editableUser.age" 
-                            name="age" 
-                            type="number" 
-                            placeholder="Enter your age" 
-                            required 
-                            min="1"
-                            max="120"
-                            class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111817] focus:outline-0 focus:ring-2 focus:ring-[#019863] border border-[#d0d9d9] bg-white placeholder:text-[#618985] p-[15px] text-base font-normal leading-normal"
-                        />
-                    </div>
-                    
-                    <!-- Email Field -->
-                    <div class="flex flex-col gap-2">
-                        <label class="text-[#111817] text-base font-medium leading-normal">Email</label>
-                        <input 
-                            [(ngModel)]="editableUser.email" 
-                            name="email" 
-                            type="email"
-                            placeholder="Enter your email" 
-                            required 
-                            class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111817] focus:outline-0 focus:ring-2 focus:ring-[#019863] border border-[#d0d9d9] bg-white placeholder:text-[#618985] p-[15px] text-base font-normal leading-normal"
-                        />
-                    </div>
-                    
-                    <!-- Phone Number Field -->
-                    <div class="flex flex-col gap-2">
-                        <label class="text-[#111817] text-base font-medium leading-normal">Phone Number</label>
-                        <input 
-                            [(ngModel)]="editableUser.phone_number" 
-                            name="phone_number" 
-                            type="tel"
-                            placeholder="Enter your phone number" 
-                            class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111817] focus:outline-0 focus:ring-2 focus:ring-[#019863] border border-[#d0d9d9] bg-white placeholder:text-[#618985] p-[15px] text-base font-normal leading-normal"
-                        />
-                    </div>
-                    
-                    <!-- Profile Photo Upload -->
-                    <div class="flex flex-col gap-2">
-                        <label class="text-[#111817] text-base font-medium leading-normal">Profile Photo</label>
-                        <div class="flex items-center gap-3">
-                            <input 
-                                type="file" 
-                                (change)="onFileSelected($event)" 
-                                accept="image/*" 
-                                class="flex-1 text-sm text-[#618985] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#f0f4f4] file:text-[#111817] hover:file:bg-[#d0d9d9] cursor-pointer"
-                            />
-                        </div>
-                        <p class="text-[#618985] text-sm">Choose a new photo to update your profile picture</p>
-                    </div>
-                    
-                    <!-- Action Buttons -->
-                    <div class="flex gap-3 pt-4">
-                        <button 
-                            type="submit" 
-                            (click)="updateProfile()"
-                            class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#019863] text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#017a4e] transition-colors"
-                        >
-                            <span class="truncate">Save Changes</span>
-                        </button>
-                        <button 
-                            type="button" 
-                            (click)="toggleEditMode()"
-                            class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#f0f4f4] text-[#111817] text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#d0d9d9] transition-colors"
-                        >
-                            <span class="truncate">Cancel</span>
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <!-- Contact Section (View Mode Only) -->
-        <div *ngIf="!editMode && !loading && user">
-            <h3 class="text-[#111817] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Contact</h3>
+            <!-- Moved Edit Button Below Profile Pic Container -->
+            <button
+              type="button"
+              class="edit-btn-enhanced"
+              (click)="openEditProfileModal()"
+              aria-label="Edit profile"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.69Z"></path>
+              </svg>
+            </button>
             
-            <div *ngIf="user?.email" class="flex items-center gap-4 bg-white px-4 min-h-[72px] py-2 profile-card hover:bg-[#f8f9fa] transition-colors">
-                <div class="text-[#111817] flex items-center justify-center rounded-lg bg-[#f0f4f4] shrink-0 size-12">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                        <path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48Zm-96,85.15L52.57,64H203.43ZM98.71,128,40,181.81V74.19Zm11.84,10.85,12,11.05a8,8,0,0,0,10.82,0l12-11.05,58,53.15H52.57ZM157.29,128,216,74.18V181.82Z"></path>
-                    </svg>
-                </div>
-                <div class="flex flex-col justify-center">
-                    <p class="text-[#111817] text-base font-medium leading-normal line-clamp-1">Email</p>
-                    <p class="text-[#618985] text-sm font-normal leading-normal line-clamp-2">{{ user.email }}</p>
-                </div>
+            <div class="profile-info-section">
+              <div class="profile-name-enhanced">{{ user.name || 'No name set' }}</div>
+              <div class="profile-age-enhanced">{{ user.age ? user.age + ' years old' : 'Age not set' }}</div>
+            </div>
+          </div>
+
+          <!-- Enhanced Contact Details Grid -->
+          <div class="contact-details-grid">
+            <div class="contact-item-enhanced">
+              <div class="contact-label-enhanced">Email</div>
+              <div class="contact-value-enhanced">{{ user.email || 'Email not set' }}</div>
             </div>
             
-            <div *ngIf="user?.phone_number" class="flex items-center gap-4 bg-white px-4 min-h-[72px] py-2 profile-card hover:bg-[#f8f9fa] transition-colors">
-                <div class="text-[#111817] flex items-center justify-center rounded-lg bg-[#f0f4f4] shrink-0 size-12">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                        <path d="M222.37,158.46l-47.11-21.11-.13-.06a16,16,0,0,0-15.17,1.4,8.12,8.12,0,0,0-.75.56L134.87,160c-15.42-7.49-31.34-23.29-38.83-38.51l20.78-24.71c.2-.25.39-.5.57-.77a16,16,0,0,0,1.32-15.06l0-.12L97.54,33.64a16,16,0,0,0-16.62-9.52A56.26,56.26,0,0,0,32,80c0,79.4,64.6,144,144,144a56.26,56.26,0,0,0,55.88-48.92A16,16,0,0,0,222.37,158.46ZM176,208A128.14,128.14,0,0,1,48,80A40.2,40.2,0,0,1,82.87,40a.61.61,0,0,0,0,.12l21,47L83.2,111.86a6.13,6.13,0,0,0-.57.77,16,16,0,0,0-1,15.7c9.06,18.53,27.73,37.06,46.46,46.11a16,16,0,0,0,15.75-1.14,8.44,8.44,0,0,0,.74-.56L168.89,152l47,21.05h0s.08,0,.11,0A40.21,40.21,0,0,1,176,208Z"></path>
-                    </svg>
-                </div>
-                <div class="flex flex-col justify-center">
-                    <p class="text-[#111817] text-base font-medium leading-normal line-clamp-1">Phone</p>
-                    <p class="text-[#618985] text-sm font-normal leading-normal line-clamp-2">{{ user.phone_number }}</p>
-                </div>
+            <div class="contact-item-enhanced">
+              <div class="contact-label-enhanced">Phone</div>
+              <div class="contact-value-enhanced">{{ user.phone_number || 'Phone not set' }}</div>
+            </div>
+            
+            <div class="contact-item-enhanced contact-full-width">
+              <div class="contact-label-enhanced">Role</div>
+              <div class="contact-value-enhanced">{{ user.user_role || 'Role not set' }}</div>
+            </div>
+            
+            <div class="contact-item-enhanced">
+              <div class="contact-label-enhanced">Sessions</div>
+              <div class="contact-value-enhanced">{{ user.total_sessions || 0 }} completed</div>
+            </div>
+            
+            <div class="contact-item-enhanced">
+              <div class="contact-label-enhanced">Member Since</div>
+              <div class="contact-value-enhanced">Jan 2024</div>
             </div>
 
-            <h3 class="text-[#111817] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Counseling History</h3>
-            <div class="flex items-center gap-4 bg-white px-4 min-h-[72px] py-2 profile-card hover:bg-[#f8f9fa] transition-colors" *ngIf="user">
-                <div class="text-[#111817] flex items-center justify-center rounded-lg bg-[#f0f4f4] shrink-0 size-12">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                        <path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-96-88v64a8,8,0,0,1-16,0V132.94l-4.42,2.22a8,8,0,0,1-7.16-14.32l16-8A8,8,0,0,1,112,120Zm59.16,30.45L152,176h16a8,8,0,0,1,0,16H136a8,8,0,0,1-6.4-12.8l28.78-38.37A8,8,0,1,0,145.07,132a8,8,0,1,1-13.85-8A24,24,0,0,1,176,136,23.76,23.76,0,0,1,171.16,150.45Z"></path>
-                    </svg>
-                </div>
-                <div class="flex flex-col justify-center">
-                    <p class="text-[#111817] text-base font-medium leading-normal line-clamp-1">Total Sessions</p>
-                    <p class="text-[#618985] text-sm font-normal leading-normal line-clamp-2">{{ user.total_sessions || 0 }} sessions completed</p>
-                </div>
+            <!-- Logout Button -->
+            <div class="contact-item-enhanced contact-full-width">
+              <button class="logout-button" (click)="logout()">
+                <ion-icon name="log-out-outline"></ion-icon>
+                <span>Logout</span>
+              </button>
             </div>
+          </div>
         </div>
+      </div>
+
+      <!-- Edit Mode - Enhanced -->
+      <div *ngIf="editMode && editableUser && !loading" class="profile-container">
+        <div class="profile-edit-enhanced">
+          <!-- Photo Upload Section -->
+          <div class="photo-upload-section">
+            <div class="upload-container">
+              <div
+                class="profile-image-enhanced edit-mode"
+                [style.background-image]="editableUser.profile_photo ? 'url(' + editableUser.profile_photo + ')' : 'url(https://lh3.googleusercontent.com/aida-public/AB6AXuBNDNTHkCT_irRd0FOe54SCnHKSZawgOY75WtbEL6QKFrGAMH3Vny4GmacW4ZaKS5mNB4ZY5H1IlQZod4JNE6rRc8ILRpyXgi5452cyrFdSVUk2T4aZXirDFAd4ZAxGrdLnMFP03zX5vZl_eLAd54j3bj7rklm7oPqI0Ow0xXvpT685j44gBg_NuTEet7oOtoOFOrVCfO8JaL0aKoHLdMxCosCRTdhQaJiXgeqPCKBKfN8SLreGWhOK5cpeyA1eTE42vF1D-tiIOV3_)'"
+              >
+                <div class="upload-overlay">
+                  <div class="upload-icon">📷</div>
+                </div>
+                <input
+                  type="file"
+                  (change)="onFileSelected($event)"
+                  accept="image/*"
+                  class="file-input-hidden"
+                />
+              </div>
+            </div>
+            <div class="upload-hint-text">Tap photo to change</div>
+          </div>
+
+          <!-- Enhanced Form -->
+          <form (ngSubmit)="updateProfile()" #profileForm="ngForm" novalidate class="enhanced-form">
+            <div class="form-grid-enhanced">
+              <!-- Name and Age Row -->
+              <div class="form-row-enhanced">
+                <div class="form-group-enhanced">
+                  <label for="name" class="form-label-enhanced">Name</label>
+                  <input
+                    id="name"
+                    type="text"
+                    [(ngModel)]="editableUser.name"
+                    name="name"
+                    required
+                    class="form-input-enhanced"
+                    placeholder="Enter your full name"
+                  />
+                </div>
+                <div class="form-group-enhanced">
+                  <label for="age" class="form-label-enhanced">Age</label>
+                  <input
+                    id="age"
+                    type="number"
+                    [(ngModel)]="editableUser.age"
+                    name="age"
+                    required
+                    class="form-input-enhanced"
+                    placeholder="Age"
+                    min="1"
+                    max="120"
+                  />
+                </div>
+              </div>
+
+              <!-- Email Full Width -->
+              <div class="form-group-enhanced form-full-width">
+                <label for="email" class="form-label-enhanced">Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  [(ngModel)]="editableUser.email"
+                  name="email"
+                  required
+                  class="form-input-enhanced"
+                  placeholder="your.email@example.com"
+                />
+              </div>
+
+              <!-- Phone Full Width -->
+              <div class="form-group-enhanced form-full-width">
+                <label for="phone" class="form-label-enhanced">Phone Number</label>
+                <input
+                  id="phone"
+                  type="tel"
+                  [(ngModel)]="editableUser.phone_number"
+                  name="phone_number"
+                  class="form-input-enhanced"
+                  placeholder="+1 234 567 8900"
+                />
+              </div>
+            </div>
+
+            <!-- Enhanced Action Buttons -->
+            <div class="action-buttons-enhanced">
+              <button
+                type="button"
+                (click)="cancelEdit()"
+                class="btn-enhanced btn-cancel-enhanced"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"/>
+                </svg>
+                Cancel
+              </button>
+              <button
+                type="submit"
+                [disabled]="profileForm.invalid"
+                class="btn-enhanced btn-save-enhanced"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M21 7v12q0 .825-.588 1.413Q19.825 21 19 21H5q-.825 0-1.413-.587Q3 19.825 3 19V5q0-.825.587-1.413Q4.175 3 5 3h12l4 4ZM17 19V12H7v7h10Zm-8-9h6V7H9v3Zm8 9V12H7v7h10Z"/>
+                </svg>
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-
-    
-</div></ion-content>
-<ion-footer class="ion-no-border">
-  <ion-toolbar class="p-0 m-0" style="--min-height: auto;">
-    <app-home-footer></app-home-footer>
-  </ion-toolbar>
-  <div class="h-5 bg-white"></div>
-</ion-footer>
- </ion-page>
+  </div>
+</ion-content>
+</ion-page>

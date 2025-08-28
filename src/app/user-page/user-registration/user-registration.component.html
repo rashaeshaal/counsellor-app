@@ -50,6 +50,26 @@
                     </div>
                 </div>
 
+                <!-- Email -->
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="Email"
+                            class="form-input"
+                            [(ngModel)]="email"
+                            required
+                            #emailInput="ngModel"
+                        />
+                    </div>
+                    <div *ngIf="emailInput.invalid && emailInput.touched" class="error-message">
+                        <span *ngIf="emailInput.errors?.['required']">Email is required</span>
+                        <span *ngIf="emailInput.errors?.['email']">Enter a valid email address</span>
+                    </div>
+                </div>
+
                 <!-- Date of Birth -->
                 <div class="form-group">
                     <div class="input-wrapper date-wrapper">

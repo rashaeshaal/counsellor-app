@@ -6,12 +6,16 @@ import { ToastController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { WebrtcService } from 'src/app/webrtc.service';
 import { environment } from 'src/environments/environment';
+import { MiniCallService } from 'src/app/mini-call.service'; // Import MiniCallService
+import { CommonModule } from '@angular/common'; // Import CommonModule
+import { IonicModule } from '@ionic/angular'; // Import IonicModule
 
 @Component({
   selector: 'app-call',
   templateUrl: './call.component.html',
   styleUrls: ['./call.component.scss'],
-  standalone: false,
+  standalone: true, // Change to standalone: true
+  imports: [CommonModule, IonicModule] // Add imports for standalone component
 })
 export class CallComponent implements OnInit, OnDestroy, AfterViewInit {
 
@@ -46,9 +50,11 @@ export class CallComponent implements OnInit, OnDestroy, AfterViewInit {
     private webrtcService: WebrtcService,
     private toastCtrl: ToastController,
     private http: HttpClient,
+    private miniCallService: MiniCallService,
   ) {}
 
   ngOnInit() {
+    this.miniCallService.hideMiniUi(); // Hide mini UI when full call component is active
     this.bookingId = history.state.bookingId;
     this.counsellor = history.state.counsellor;
 
@@ -81,9 +87,18 @@ export class CallComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscriptions.forEach(sub => sub.unsubscribe());
     this.clearTimer();
     
-    // Only end call if we're still connected/connecting
-    if (['connecting', 'connected', 'ringing'].includes(this.callState)) {
-      this.webrtcService.endCall();
+    // Check if the call is still active when the component is destroyed
+    // This happens if the user navigates away without explicitly ending the call
+    if (['connecting', 'connected', 'ringing'].includes(this.webrtcService.getCurrentCallState())) {
+      // If the call is active, show the mini UI
+      this.miniCallService.showMiniUi({
+        bookingId: this.bookingId,
+        counsellorName: this.counsellorName,
+        callState: this.webrtcService.getCurrentCallState()
+      });
+    } else {
+      // If the call is already ended or failed, ensure mini UI is hidden
+      this.miniCallService.hideMiniUi();
     }
   }
 
@@ -261,6 +276,56 @@ async endCall() {
 
     this.webrtcService.endCall();
     this.showToast('Call ended', 'warning');
+
+    // Calculate actual duration
+    let actualDurationMinutes = 0;
+    if (this.startTime) {
+      const now = Date.now();
+      const diff = now - this.startTime;
+      actualDurationMinutes = Math.floor(diff / 60000); // Convert milliseconds to minutes
+    }
+
+    // Get booked session duration
+    let bookedSessionDuration = 0;
+    if (this.counsellor && this.counsellor.session_duration) { // Assuming session_duration is part of counsellor object
+      bookedSessionDuration = this.counsellor.session_duration;
+    } else {
+      // Fallback: if session_duration is not directly available, you might need to fetch booking details
+      // For now, let's assume a default or log an error
+      console.warn('Session duration not found in counsellor object. Cannot calculate remaining minutes accurately.');
+      // You might want to fetch booking details here if session_duration is critical
+    }
+
+    // Calculate remaining minutes
+    let remainingMinutes = 0;
+    if (bookedSessionDuration > 0 && actualDurationMinutes < bookedSessionDuration) {
+      remainingMinutes = bookedSessionDuration - actualDurationMinutes;
+    }
+
+    // Send data to backend to credit remaining minutes
+    if (remainingMinutes > 0 && this.bookingId) {
+      const accessToken = localStorage.getItem('access_token');
+      if (accessToken) {
+        this.http.post(`${environment.apiUrl}/api/call/credit_minutes/`, {
+          booking_id: this.bookingId,
+          booked_duration: bookedSessionDuration,
+          actual_duration: actualDurationMinutes,
+          remaining_minutes: remainingMinutes
+        }, {
+          headers: new HttpHeaders({ 'Authorization': `Bearer ${accessToken}` })
+        }).subscribe({
+          next: (response) => {
+            console.log('Minutes credited successfully:', response);
+            this.showToast(`Credited ${remainingMinutes} minutes to wallet.`, 'success');
+          },
+          error: (error) => {
+            console.error('Failed to credit minutes:', error);
+            this.showToast('Failed to credit remaining minutes.', 'danger');
+          }
+        });
+      }
+    }
+
     this.router.navigate(['/user-dashboard']);
 }
 

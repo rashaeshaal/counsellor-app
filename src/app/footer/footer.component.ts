@@ -1,19 +1,22 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { NavController, ToastController } from '@ionic/angular';
+import { NavController, ToastController, IonicModule } from '@ionic/angular';
 import { environment } from 'src/environments/environment';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-footer',
   templateUrl: './footer.component.html',
   styleUrls: ['./footer.component.scss'],
-  standalone: false,
+  standalone: true,
+  imports: [IonicModule, CommonModule]
 })
 export class FooterComponent implements OnInit {
   isActive = true;
   activeBookingId: number | null = null;
   counsellorId: string | null = null;
+  notificationCount = 0;
 
   constructor(
     private http: HttpClient,
@@ -26,6 +29,28 @@ export class FooterComponent implements OnInit {
 
   ngOnInit(): void {
     this.fetchActiveBooking();
+    
+  }
+
+ 
+
+
+  async showNotification(request: any) {
+    const toast = await this.toastCtrl.create({
+      header: 'New Call Request',
+      message: `From: ${request.user.phone_number}`,
+      duration: 5000,
+      position: 'top',
+      buttons: [
+        {
+          text: 'View',
+          handler: () => {
+            this.navigateTo('/counsellor-notifications');
+          }
+        }
+      ]
+    });
+    toast.present();
   }
 
   private async showToast(message: string, color: string) {
@@ -96,11 +121,10 @@ export class FooterComponent implements OnInit {
     this.navCtrl.navigateForward(page).then(success => {
       console.log('FooterComponent: Navigation to', page, success ? 'Successful' : 'Failed');
       if (!success) {
-        this.showToast('Navigation failed', 'danger');
+     
       }
     }).catch(error => {
-      console.error('FooterComponent: Navigation error:', error);
-      this.showToast('Navigation failed', 'danger');
+     
     });
   }
 
@@ -139,7 +163,7 @@ export class FooterComponent implements OnInit {
     this.router.navigate(['/counsellor-call'], { queryParams: { bookingId: this.activeBookingId } }).then(success => {
       if (!success) {
         console.error('FooterComponent: Navigation to /counsellor-call Failed', { bookingId: this.activeBookingId });
-        this.showToast('Failed to navigate to call', 'danger');
+     
       }
     });
   }

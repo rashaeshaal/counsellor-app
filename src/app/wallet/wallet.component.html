@@ -8,30 +8,11 @@
   <div class="wallet-summary ion-text-center">
     <ion-card>
       <ion-card-header>
-        <ion-card-title>Current Balance</ion-card-title>
+        <ion-card-title>Extra Session Duration</ion-card-title>
       </ion-card-header>
       <ion-card-content>
-        <h1 class="balance-amount">{{ wallet.balance | currency:'USD':'symbol':'1.2-2' }}</h1>
+        <h1 class="balance-amount">{{ wallet.balance }} minutes</h1>
       </ion-card-content>
     </ion-card>
-  </div>
-
-  <ion-list *ngIf="transactions.length > 0">
-    <ion-list-header>
-      <ion-label>Recent Transactions</ion-label>
-    </ion-list-header>
-    <ion-item *ngFor="let transaction of transactions">
-      <ion-label>
-        <h2>{{ getTransactionType(transaction.type) }}</h2>
-        <p>{{ formatDate(transaction.timestamp) }}</p>
-      </ion-label>
-      <ion-text [color]="transaction.type === 'DEPOSIT' ? 'success' : 'danger'">
-        {{ transaction.amount | currency:'USD':'symbol':'1.2-2' }}
-      </ion-text>
-    </ion-item>
-  </ion-list>
-
-  <div *ngIf="transactions.length === 0" class="ion-text-center ion-padding">
-    <p>No transactions yet.</p>
   </div>
 </ion-content>

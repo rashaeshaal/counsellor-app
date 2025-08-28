@@ -1,22 +1,18 @@
-<ion-content class="bg-white" [fullscreen]="true">
-  <div class="container relative flex flex-col min-h-full justify-between overflow-x-hidden">
-    <!-- Animated background -->
-    <div class="background absolute inset-0 z-[-1]"></div>
+<ion-content class="home-page-content" [fullscreen]="true" style="display: flex; justify-content: center; align-items: center;">
+  <div class="container" style="margin: auto;">
+    <div class="background"></div>
 
-    <!-- Floating orbs -->
     <div class="orb orb1"></div>
     <div class="orb orb2"></div>
     <div class="orb orb3"></div>
     <div class="orb orb4"></div>
 
-    <!-- Header -->
-    <header class="w-full pt-8 pb-6 text-center relative z-[1]">
-      <h1 class="app-title">Manshanthi</h1>
-      <p class="app-subtitle">Your path to mental wellness</p>
-    </header>
+    <div class="main-content">
+      <header class="header">
+        <h1 class="app-title">Manshanthi</h1>
+        <p class="app-subtitle">Your path to mental wellness</p>
+      </header>
 
-    <!-- Main Content -->
-    <main class="flex flex-col items-center justify-center flex-grow px-4 relative z-[1]">
       <div class="illustration-container">
         <div class="illustration-wrapper">
           <img
@@ -27,13 +23,10 @@
         </div>
       </div>
 
-      <!-- Buttons -->
       <div class="button-container">
         <button class="btn btn-primary" (click)="goToUserHelp()">I Need Help</button>
         <button class="btn btn-secondary" (click)="goToCounsellorRegister()">I’m a Counselor</button>
       </div>
-    </main>
-
-    <footer class="h-8 relative z-[1]"></footer>
+    </div>
   </div>
 </ion-content>

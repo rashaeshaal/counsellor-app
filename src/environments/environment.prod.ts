@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
-  wsUrl: 'ws://192.168.1.34:8000',
-  apiUrl: 'http://192.168.1.34:8000',
+  wsUrl: 'wss://counsellor-backend-13.onrender.com',
+  apiUrl: 'https://counsellor-backend-13.onrender.com',
   firebase: {
     apiKey: "AIzaSyAenoNfxm6XyIWrad5hocYwKTlqO3roKa8",
     authDomain: "counsellor-7cb91.firebaseapp.com",

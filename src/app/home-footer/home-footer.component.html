@@ -1,60 +1,17 @@
-<div class="flex gap-2 border-t border-[#f0f4f4] bg-white px-4 pb-3 pt-2">
-  <a
-    class="just flex flex-1 flex-col items-center justify-end gap-1 rounded-full text-[#111817]"
-    (click)="navigateTo('/user-dashboard')"
-  >
-    <div class="text-[#111817] flex h-8 items-center justify-center" data-icon="House" data-size="24px" data-weight="fill">
-      <!-- Home Icon -->
-      <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-        <path
-          d="M224,115.55V208a16,16,0,0,1-16,16H168a16,16,0,0,1-16-16V168a8,8,0,0,0-8-8H112a8,8,0,0,0-8,8v40a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V115.55a16,16,0,0,1,5.17-11.78l80-75.48.11-.11a16,16,0,0,1,21.53,0,1.14,1.14,0,0,0,.11.11l80,75.48A16,16,0,0,1,224,115.55Z"
-        ></path>
-      </svg>
-    </div>
-    <p class="text-[#111817] text-xs font-medium leading-normal tracking-[0.015em]">Home</p>
-  </a>
+<ion-tab-bar class="home-footer">
+  <ion-tab-button (click)="navigateTo('/user-dashboard')">
+    <ion-icon name="home-outline"></ion-icon>
+    <ion-label>Home</ion-label>
+  </ion-tab-button>
 
-  <a
-    class="just flex flex-1 flex-col items-center justify-end gap-1 text-[#618985]"
-    (click)="navigateTo('/sessions/on-progress')"
-  >
-    <div class="text-[#618985] flex h-8 items-center justify-center" data-icon="Calendar" data-size="24px" data-weight="regular">
-      <!-- Sessions Icon -->
-      <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-        <path
-          d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-96-88v64a8,8,0,0,1-16,0V132.94l-4.42,2.22a8,8,0,0,1-7.16-14.32l16-8A8,8,0,0,1,112,120Zm59.16,30.45L152,176h16a8,8,0,0,1,0,16H136a8,8,0,0,1-6.4-12.8l28.78-38.37A8,8,0,1,0,145.07,132a8,8,0,1,1-13.85-8A24,24,0,0,1,176,136,23.76,23.76,0,0,1,171.16,150.45Z"
-        ></path>
-      </svg>
-    </div>
-    <p class="text-[#618985] text-xs font-medium leading-normal tracking-[0.015em]">On Progress</p>
-  </a>
 
-  <a
-    class="just flex flex-1 flex-col items-center justify-end gap-1 text-[#618985]"
-    (click)="navigateTo('/wallet')"
-  >
-    <div class="text-[#618985] flex h-8 items-center justify-center" data-icon="Wallet" data-size="24px" data-weight="regular">
-      <!-- Wallet Icon -->
-      <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-        <path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM40,56H216V80H40ZM216,200H40V96H216V200Zm-40-88a8,8,0,1,1-8,8A8,8,0,0,1,176,112Z"></path>
-      </svg>
-    </div>
-    <p class="text-[#618985] text-xs font-medium leading-normal tracking-[0.015em]">Wallet</p>
-  </a>
+  <ion-tab-button (click)="navigateTo('/wallet')">
+    <ion-icon name="wallet-outline"></ion-icon>
+    <ion-label>Wallet</ion-label>
+  </ion-tab-button>
 
-  <a
-    class="just flex flex-1 flex-col items-center justify-end gap-1 text-[#618985]"
-    (click)="navigateTo('/user-profile')"
-  >
-    <div class="text-[#618985] flex h-8 items-center justify-center" data-icon="User" data-size="24px" data-weight="regular">
-      <!-- Profile Icon -->
-      <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-        <path
-          d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"
-        ></path>
-      </svg>
-    </div>
-    <p class="text-[#618985] text-xs font-medium leading-normal tracking-[0.015em]">Profile</p>
-  </a>
-</div>
-<div class="h-5 bg-white"></div>
+  <ion-tab-button (click)="navigateTo('/user-profile')">
+    <ion-icon name="person-outline"></ion-icon>
+    <ion-label>Profile</ion-label>
+  </ion-tab-button>
+</ion-tab-bar>

@@ -84,8 +84,19 @@
       </div>
 
       <ng-template #loadingTemplate>
-        <div class="flex flex-1 justify-center items-center">
-          <ion-spinner name="bubbles" class="text-[#111817]"></ion-spinner>
+        <div class="shimmer-wrapper">
+          <div class="shimmer-profile-header">
+            <div class="shimmer-circle"></div>
+            <div class="shimmer-line short"></div>
+            <div class="shimmer-line medium"></div>
+          </div>
+          <div class="shimmer-info-card">
+            <div class="shimmer-line long"></div>
+            <div class="shimmer-line medium"></div>
+            <div class="shimmer-line short"></div>
+            <div class="shimmer-line long"></div>
+            <div class="shimmer-line medium"></div>
+          </div>
         </div>
       </ng-template>
     </div>

@@ -1,19 +1,100 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Counsellor Dashboard</ion-title>
-  </ion-toolbar>
-</ion-header>
+ <div class="bg-decoration">
+        <div class="floating-shape shape-1"></div>
+        <div class="floating-shape shape-2"></div>
+        <div class="floating-shape shape-3"></div>
+    </div>
 
-<div class="bg-decoration">
-  <div class="floating-shape shape-1"></div>
-  <div class="floating-shape shape-2"></div>
-  <div class="floating-shape shape-3"></div>
-</div>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            
+            <button class="logout-btn" (click)="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </header>
 
-<ion-content class="ion-padding dashboard-content">
-  <h2>Welcome, {{ counsellor?.name || 'Counsellor' }}</h2>
-  <p>Status: {{ counsellor?.is_active ? 'Active' : 'Inactive' }}</p>
- 
-</ion-content>
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="dashboard-container">
+            <!-- Welcome Section -->
+            <section class="welcome-section">
+                <h2 class="welcome-title"><i class="fas fa-tachometer-alt"></i> Welcome, {{ counsellor?.name }}</h2>
+            </section>
 
-<app-footer></app-footer>
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="stat-number">{{ counsellor?.total_sessions }}</div>
+                    <div class="stat-label">Total Sessions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-calendar-day"></i></div>
+                    <div class="stat-number">{{ counsellor?.today_sessions }}</div>
+                    <div class="stat-label">Today's Sessions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-number">{{ counsellor?.active_clients }}</div>
+                    <div class="stat-label">Active Clients</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-star"></i></div>
+                    <div class="stat-number">{{ counsellor?.rating }}</div>
+                    <div class="stat-label">Rating</div>
+                </div>
+            </div>
+
+         
+
+            <!-- Section Cards -->
+            <div class="section-cards">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <h3 class="section-title">Upcoming Sessions</h3>
+                    </div>
+                    <div class="section-content">
+                        <div *ngIf="upcomingSessions.length === 0" class="empty-state">
+                            <i class="fas fa-calendar-check"></i>
+                            <p>No upcoming sessions scheduled.</p>
+                            <small>New appointments will appear here</small>
+                        </div>
+                        <ul *ngIf="upcomingSessions.length > 0" class="session-list">
+                            <li *ngFor="let session of upcomingSessions" class="session-item">
+                                <span class="session-icon"><i class="fas fa-calendar-alt"></i></span>
+                                <span class="session-client">{{ session.clientName }}</span>
+                                <span class="session-time">{{ session.date | date:'short' }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <h3 class="section-title">Recent Activity</h3>
+                    </div>
+                    <div class="section-content">
+                        <div *ngIf="recentActivity.length === 0" class="empty-state">
+                            <i class="fas fa-clock"></i>
+                            <p>No recent activity to display.</p>
+                            <small>Your recent actions will be shown here</small>
+                        </div>
+                        <ul *ngIf="recentActivity.length > 0" class="activity-list">
+                            <li *ngFor="let activity of recentActivity" class="activity-item">
+                                <span class="activity-icon"><i class="fas fa-clock"></i></span>
+                                <span class="activity-description">{{ activity.description }}</span>
+                                <span class="activity-time">{{ activity.time | date:'shortTime' }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <app-footer></app-footer>
+        </div>

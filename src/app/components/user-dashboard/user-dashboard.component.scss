@@ -1,536 +1,258 @@
-:host {
-  display: block;
-  font-family: 'Lexend', 'Noto Sans', sans-serif;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Lexend', 'Noto Sans', sans-serif;
-  overflow-x: hidden;
-  background: #ffffff;
-}
-
-.container {
+ion-page {
   position: relative;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: #ffffff;
-  padding-bottom: 88px; /* space for fixed ion-footer */
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
-/* Animated background elements */
+ion-footer {
+  /* position: absolute;
+  bottom: 0;
+  width: 100%; */
+}
+
+ion-content {
+  flex-grow: 1;
+  --overflow: auto; /* Ensure scroll-y is enabled */
+  scroll-padding-bottom: 120px;
+}
+
+.user-dashboard-content {
+  --background: #f4f7fa;
+}
+
 .bg-decoration {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  z-index: 0;
-  pointer-events: none;
+  .floating-shape {
+    position: absolute;
+    border-radius: 50%;
+    background-color: rgba(14, 149, 136, 0.1);
+    z-index: 0;
+  }
+  .shape-1 {
+    width: 150px;
+    height: 150px;
+    top: 10%;
+    left: -50px;
+  }
+  .shape-2 {
+    width: 100px;
+    height: 100px;
+    top: 30%;
+    right: -40px;
+  }
+  .shape-3 {
+    width: 200px;
+    height: 200px;
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+  }
 }
 
-.floating-shape {
-  position: absolute;
-  opacity: 0.06;
-  border-radius: 50%;
-  background: linear-gradient(45deg, #14b8a6, #0d9488);
-  animation: float 15s ease-in-out infinite;
-}
-
-.shape-1 {
-  width: 250px;
-  height: 250px;
-  top: 5%;
-  left: -10%;
-  animation-delay: 0s;
-}
-
-.shape-2 {
-  width: 180px;
-  height: 180px;
-  top: 40%;
-  right: -8%;
-  background: linear-gradient(45deg, #06b6d4, #0891b2);
-  animation-delay: -5s;
-}
-
-.shape-3 {
-  width: 120px;
-  height: 120px;
-  bottom: 20%;
-  left: 15%;
-  background: linear-gradient(45deg, #8b5cf6, #7c3aed);
-  animation-delay: -10s;
-}
-
-@keyframes float {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  25% { transform: translate(20px, -30px) rotate(90deg); }
-  50% { transform: translate(-15px, -60px) rotate(180deg); }
-  75% { transform: translate(-25px, -30px) rotate(270deg); }
-}
-
-/* Header */
 .header {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
   padding: 1rem;
-  padding-bottom: 0.5rem;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  background-color: #fff;
+  .back-button {
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+  .header-title {
+    flex-grow: 1;
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
 }
 
-.back-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  color: #111817;
-  cursor: pointer;
-  border-radius: 50%;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.back-button:hover {
-  background: rgba(255, 255, 255, 1);
-  transform: translateX(-3px) scale(1.05);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-.header-title {
-  color: #111817;
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.015em;
-  flex: 1;
-  text-align: center;
-  padding-right: 3rem;
-  background: linear-gradient(135deg, #ffffff 0%, #0d9488 70%, #06b6d4 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Search and filter section */
 .search-section {
   padding: 0 1rem 1rem;
-  margin-bottom: 1rem;
-}
-
-.search-container {
-  position: relative;
-  margin-bottom: 1rem;
-}
-
-.search-input {
-  width: 100%;
-  padding: 1rem 1rem 1rem 3rem;
-  border: 2px solid rgba(209, 213, 219, 0.3);
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
-  font-size: 1rem;
-  color: #111817;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #14b8a6;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.1), 0 8px 25px rgba(0, 0, 0, 0.1);
-}
-
-.search-icon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #618985;
-  pointer-events: none;
-}
-
-/* Counsellor cards */
-.counsellors-list {
-  padding: 0 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.counsellor-card {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(20px);
-  border-radius: 1.5rem;
-  padding: 1.5rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.counsellor-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(20, 184, 166, 0.05), rgba(6, 182, 212, 0.05));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.counsellor-card:hover {
-  transform: translateY(-5px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
-  border-color: rgba(20, 184, 166, 0.2);
-}
-
-.counsellor-card:hover::before {
-  opacity: 1;
-}
-
-.card-content {
-  display: flex;
-  gap: 1rem;
-  position: relative;
-  z-index: 2;
-}
-
-.counsellor-info {
-  flex: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.counsellor-details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.status-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.status-online .status-dot {
-  background: #10b981;
-}
-
-.status-busy .status-dot {
-  background: #f59e0b;
-}
-
-.status-offline .status-dot {
-  background: #ef4444;
-}
-
-.counsellor-name {
-  color: #111817;
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.2;
-  margin-bottom: 0.25rem;
-  background: linear-gradient(135deg, #111817 0%, #0d9488 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.counsellor-specialty {
-  color: #618985;
-  font-size: 0.875rem;
-  line-height: 1.4;
-  opacity: 0.9;
-}
-
-.rating-container {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
-}
-
-.stars {
-  display: flex;
-  gap: 0.125rem;
-}
-
-.star {
-  width: 14px;
-  height: 14px;
-  color: #fbbf24;
-}
-
-.rating-text {
-  font-size: 0.75rem;
-  color: #618985;
-}
-
-/* Action buttons */
-.action-buttons {
-  display: flex;
-  gap: 0.75rem;
-  margin-top: auto;
-}
-
-.btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1rem;
-  border-radius: 1rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: none;
-  position: relative;
-  overflow: hidden;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-
-.btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.6s;
-}
-
-.btn:hover::before {
-  transform: translateX(100%);
-}
-
-.btn-secondary {
-  background: rgba(240, 244, 244, 0.8);
-  color: #111817;
-  border: 1px solid rgba(209, 213, 219, 0.3);
-  backdrop-filter: blur(10px);
-}
-
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.9);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #618985 0%, #14b8a6 50%, #0d9488 100%);
-  background-size: 200% 200%;
-  color: white;
-  box-shadow: 0 6px 20px rgba(97, 137, 133, 0.3);
-}
-
-.btn-primary:hover {
-  background-position: 100% 0;
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 12px 30px rgba(97, 137, 133, 0.4);
-}
-
-.btn-primary:active {
-  transform: translateY(-1px) scale(0.98);
-}
-
-/* Profile photo */
-.profile-photo-container {
-  flex: 1;
-  min-width: 100px;
-  max-width: 120px;
-  position: relative;
-}
-
-.profile-photo {
-  width: 100%;
-  aspect-ratio: 1;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  border-radius: 1.25rem;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.counsellor-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 1.25rem;
-}
-
-.profile-photo::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(20, 184, 166, 0.1), rgba(6, 182, 212, 0.1));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.counsellor-card:hover .profile-photo {
-  transform: scale(1.05);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-}
-
-.counsellor-card:hover .profile-photo::before {
-  opacity: 1;
-}
-
-.profile-placeholder {
-  background: linear-gradient(135deg, #14b8a6, #0d9488);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 2rem;
-  font-weight: 700;
-}
-
-/* Footer placeholder */
-.footer-placeholder {
-  height: 80px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255, 255, 255, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #618985;
-  font-size: 0.875rem;
-  position: relative;
-  z-index: 10;
-}
-
-/* Empty state */
-.empty-state {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: #618985;
-}
-
-.empty-icon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 1rem;
-  background: linear-gradient(135deg, #14b8a6, #0d9488);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-}
-
-/* Loading animation */
-.loading-spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top: 2px solid currentColor;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-/* Mobile-specific styles */
-@media (max-width: 640px) {
-  .container {
-    padding-bottom: 80px;
-  }
-
-  .card-content {
-    flex-direction: row;
+  background-color: #fff;
+  .search-container {
+    display: flex;
     align-items: center;
-  }
-
-  .profile-photo-container {
-    min-width: 80px;
-    max-width: 100px;
-    order: 1;
-  }
-
-  .counsellor-info {
-    flex: 3;
-    text-align: left;
-  }
-
-  .action-buttons {
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .header-title {
-    font-size: 1.125rem;
-  }
-
-  .counsellor-name {
-    font-size: 1.1rem;
-  }
-
-  .counsellor-specialty {
-    font-size: 0.8rem;
-  }
-
-  .btn {
-    padding: 0.5rem 0.8rem;
-    font-size: 0.8rem;
+    background-color: #f0f4f4;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    .search-icon {
+      font-size: 1.25rem;
+      color: #618985;
+      padding: 0 0.5rem;
+    }
+    .search-input {
+      border: none;
+      background: transparent;
+      width: 100%;
+      font-size: 1rem;
+      color: #111817;
+      &:focus {
+        outline: none;
+      }
+    }
   }
 }
 
-/* Accessibility */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+.main-content {
+  padding: 1rem;
+  flex-grow: 1;
+  .counsellors-list {
+    display: grid;
+    gap: 1rem;
+    /* Disable transitions for list and its children */
+    * {
+      transition: none !important;
+    }
+  }
+  .counsellor-card {
+    background-color: #fff !important;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid #e0e0e0;
+    transition: none !important;
+    /* Disable transitions for card and its children */
+    * {
+      transition: none !important;
+    }
+    .card-content {
+      display: flex;
+      padding: 1rem;
+      .counsellor-info {
+        flex-grow: 1;
+        .counsellor-details {
+          .status-indicator {
+            display: flex;
+            align-items: center;
+            font-size: 0.875rem;
+            .status-dot {
+              width: 8px;
+              height: 8px;
+              border-radius: 50%;
+              margin-right: 0.5rem;
+            }
+            &.status-online {
+              color: #0e9588;
+              .status-dot {
+                background-color: #0e9588;
+              }
+            }
+            &.status-offline {
+              color: #618985;
+              .status-dot {
+                background-color: #618985;
+              }
+            }
+          }
+          .counsellor-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin: 0.5rem 0;
+          }
+          .counsellor-specialty {
+            font-size: 0.875rem;
+            color: #333333;
+            margin-bottom: 0.5rem;
+          }
+          .rating-container {
+            .stars {
+              color: #ffc107;
+            }
+          }
+        }
+        .action-buttons {
+          display: flex;
+          gap: 0.5rem;
+          margin-top: 0.75rem;
+          flex-wrap: nowrap; /* Prevent wrapping to keep buttons side by side */
+          justify-content: flex-start;
+          .btn {
+            min-width: auto;
+            padding: 0.3rem 0.6rem; /* Slightly smaller padding for compactness */
+            border-radius: 0.4rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            font-size: 0.8rem; /* Smaller font size for better fit */
+            line-height: 1.2;
+            flex: 1; /* Equal width for both buttons */
+            max-width: 120px; /* Limit max width to prevent overflow */
+          }
+          @media (max-width: 576px) {
+            gap: 0.3rem; /* Smaller gap on mobile for tighter fit */
+            .btn {
+              padding: 0.25rem 0.5rem; /* Even smaller padding on mobile */
+              font-size: 0.75rem; /* Smaller font size on mobile */
+              max-width: 100px; /* Slightly smaller max width */
+            }
+          }
+          .btn-primary {
+            background-color: #0e9588;
+            color: #fff;
+            ion-icon {
+              color: #fff;
+              font-size: 0.9rem; /* Smaller icon size */
+            }
+          }
+          .btn-secondary {
+            background-color: #f0f4f4;
+            color: #111817;
+            ion-icon {
+              font-size: 0.9rem; /* Smaller icon size */
+            }
+          }
+        }
+      }
+      .profile-photo-container {
+        .profile-photo {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          background-color: #f0f4f4;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 2rem;
+          color: #618985;
+          overflow: hidden;
+          .counsellor-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+        }
+      }
+    }
+  }
+  .empty-state {
+    text-align: center;
+    padding: 2rem;
+    .empty-icon {
+      font-size: 3rem;
+      color: #618985;
+      margin-bottom: 1rem;
+    }
+    p {
+      color: #618985;
+    }
   }
 }
 
-.btn:focus-visible,
-.back-button:focus-visible,
-.search-input:focus,
-.filter-tab:focus-visible {
-  outline: 3px solid rgba(20, 184, 166, 0.5);
-  outline-offset: 2px;
+ion-footer {
+  ion-toolbar {
+    --background: white;
+    --min-height: auto;
+    padding: 0;
+    margin: 0;
+  }
+  .h-5 {
+    height: 1.25rem;
+    background-color: white;
+  }
 }

@@ -8,7 +8,6 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
   background: #ffffff;
   padding-bottom: 88px; /* space for global footer */
 }
@@ -68,3 +67,78 @@
   box-shadow: 0 6px 20px rgba(97, 137, 133, 0.3);
 }
 
+.shimmer-wrapper {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.shimmer-profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 300px;
+}
+
+.shimmer-circle {
+  width: 144px; // Matches min-h-36 w-36 (144px) from HTML
+  height: 144px;
+  border-radius: 50%;
+  background: #f0f0f0; // Softer background
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-info-card {
+  width: 100%;
+  max-width: 400px;
+  background: #f8f8f8; // Lighter background
+  padding: 20px;
+  border-radius: 12px; // Slightly more rounded
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.shimmer-line {
+  height: 16px;
+  background: #f0f0f0; // Softer background
+  border-radius: 8px; // More rounded
+  position: relative;
+  overflow: hidden;
+
+  &.short {
+    width: 60%;
+  }
+  &.medium {
+    width: 80%;
+  }
+  &.long {
+    width: 100%;
+  }
+}
+
+/* Shimmer Animation */
+.shimmer-circle::after,
+.shimmer-line::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  // Softer, wider gradient for a more gentle shimmer
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0));
+  transform: translateX(-100%);
+  animation: shimmer 1.8s infinite; // Slightly slower animation
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}

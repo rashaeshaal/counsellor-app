@@ -15,20 +15,7 @@ export class CounsellorNotificationsComponent  implements OnInit {
   constructor(private http: HttpClient) {}
 
   ngOnInit() {
-    const accessToken = localStorage.getItem('access_token');
-    if (accessToken) {
-      this.http
-        .get(`${environment.apiUrl}/api/counsellor/notifications/`, {
-          headers: new HttpHeaders({ 'Authorization': `Bearer ${accessToken}` })
-        })
-        .subscribe({
-          next: (response: any) => {
-            this.callRequests = response.call_requests;
-          },
-          error: (error) => {
-            console.error('Error fetching notifications:', error);
-          }
-        });
-    }
+    // Initialization logic can go here if needed in the future
   }
+
 }

@@ -29,8 +29,25 @@ export class WebrtcService {
   private isInitiator = false; // Track if this instance initiated the call
   private callTimer: any = null;
   private callStartTime: number | null = null;
+  private ringingAudio: HTMLAudioElement | null = null;
+  private iceCandidateQueue: RTCIceCandidateInit[] = [];
 
   constructor(private http: HttpClient) {}
+
+  private playRingingSound() {
+    if (!this.ringingAudio) {
+      this.ringingAudio = new Audio('assets/audio/ringing.mp3'); // Make sure you have this audio file
+      this.ringingAudio.loop = true;
+    }
+    this.ringingAudio.play().catch(e => console.error('Error playing ringing sound:', e));
+  }
+
+  private stopRingingSound() {
+    if (this.ringingAudio) {
+      this.ringingAudio.pause();
+      this.ringingAudio.currentTime = 0;
+    }
+  }
 
   private setupPeerConnection() {
     console.log('Setting up peer connection...');
@@ -44,6 +61,10 @@ export class WebrtcService {
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
         { urls: 'stun:stun2.l.google.com:19302' },
+        // Recommended: Add a TURN server for improved connectivity, especially on restricted networks.
+        // Replace with your actual TURN server URL, username, and credential.
+        // Example:
+        // { urls: 'turn:your-turn-server.com:3478', username: 'your-username', credential: 'your-password' },
       ]
     };
 
@@ -83,6 +104,7 @@ export class WebrtcService {
       switch (state) {
         case 'connected':
           this.callStateSubject.next('connected');
+          this.stopRingingSound();
           this.reconnectAttempts = 0;
           this.callStartTime = Date.now(); // Record call start time
           break;
@@ -207,6 +229,7 @@ export class WebrtcService {
       // Connect to WebSocket
       await this.connectWebSocketAsync(bookingId, this.accessToken);
       this.callStateSubject.next('ringing');
+      this.playRingingSound();
       
       // Send call initiation message
       this.sendMessage({
@@ -352,7 +375,7 @@ export class WebrtcService {
         console.error(`WebSocket connection timeout for ${wsUrl}`);
         this.callStateSubject.next('failed');
         reject(new Error(`WebSocket connection timeout for ${wsUrl}`));
-      }, 10000);
+      }, 5000);
 
       this.websocket.onopen = () => {
         clearTimeout(timeout);
@@ -455,12 +478,14 @@ export class WebrtcService {
         case 'call-ended':
         case 'call_ended':
             console.log('Call ended message received');
+            this.stopRingingSound();
             this.endCall();
             break;
             
         case 'call-rejected':
         case 'call_rejected':
             console.log('Call rejected message received');
+            this.stopRingingSound();
             this.callStateSubject.next('ended');
             this.messageSubject.next(message);
             break;
@@ -499,6 +524,7 @@ export class WebrtcService {
         // Set remote description
         console.log('Setting remote description with offer...');
         await this.peerConnection!.setRemoteDescription(new RTCSessionDescription(message.offer));
+        this.processIceCandidateQueue();
         console.log('Remote description set successfully');
         
         // Ensure we have local stream and add tracks if not already added
@@ -547,9 +573,11 @@ export class WebrtcService {
   private async handleAnswer(message: any) {
     try {
       console.log('Handling answer:', message.answer);
+      this.stopRingingSound();
       
       if (this.ensurePeerConnection()) {
         await this.peerConnection!.setRemoteDescription(new RTCSessionDescription(message.answer));
+        this.processIceCandidateQueue();
         console.log('Answer processed successfully');
       }
     } catch (error) {
@@ -566,17 +594,25 @@ export class WebrtcService {
         await this.peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate));
         console.log('ICE candidate added successfully');
       } else {
-        console.warn('Cannot add ICE candidate - no remote description');
-        // Queue the candidate for later if remote description isn't set yet
-        setTimeout(() => {
-          if (this.peerConnection && this.peerConnection.remoteDescription) {
-            this.peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate))
-              .catch(err => console.error('Delayed ICE candidate add failed:', err));
-          }
-        }, 1000);
+        console.warn('Cannot add ICE candidate - no remote description, adding to queue');
+        this.iceCandidateQueue.push(message.candidate);
       }
     } catch (error) {
       console.error('Error handling ICE candidate:', error);
+    }
+  }
+
+  private async processIceCandidateQueue() {
+    while (this.iceCandidateQueue.length > 0) {
+      const candidate = this.iceCandidateQueue.shift();
+      if (candidate) {
+        try {
+          await this.peerConnection?.addIceCandidate(new RTCIceCandidate(candidate));
+          console.log('Processed queued ICE candidate');
+        } catch (error) {
+          console.error('Error processing queued ICE candidate:', error);
+        }
+      }
     }
   }
 
@@ -617,6 +653,7 @@ export class WebrtcService {
 
   rejectCall(): void {
     console.log('Rejecting call...');
+    this.stopRingingSound();
     
     this.sendMessage({
       type: 'call_rejected',
@@ -727,6 +764,7 @@ export class WebrtcService {
 
   endCall(): void {
     console.log('Ending call...');
+    this.stopRingingSound();
     
     let actualDuration: number | undefined;
     if (this.callStartTime) {

@@ -39,7 +39,7 @@ export class UserProfileComponent implements OnInit {
     this.loadUserProfile();
   }
 
-  toggleEditMode() {
+  openEditProfileModal() {
     console.log('toggleEditMode called - current editMode:', this.editMode);
     console.log('user data:', this.user);
     
@@ -69,6 +69,11 @@ export class UserProfileComponent implements OnInit {
       this.selectedFile = null;
       console.log('Edit mode cancelled, file reset');
     }
+  }
+
+  cancelEdit() {
+    this.editMode = false;
+    this.selectedFile = null;
   }
 
   onNameChange(event: any) {
@@ -254,6 +259,13 @@ export class UserProfileComponent implements OnInit {
       position: 'top'
     });
     toast.present();
+  }
+
+  logout() {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token'); // Assuming you also store refresh token
+    this.router.navigate(['/user-page']); // Navigate to the initial user page or login
+    this.showToast('Logged out successfully', 'success');
   }
 
   // Debug method to test form binding

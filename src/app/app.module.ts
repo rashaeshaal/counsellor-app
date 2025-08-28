@@ -38,6 +38,7 @@ import { AuthService } from './services/auth.service';
 import { CounsellorRegisterComponent } from './counsellor/counsellor-register/counsellor-register.component';
 import { ProblemSelectionComponent } from './problem-selection/problem-selection.component';
 import { WalletComponent } from './wallet/wallet.component';
+import { MiniCallComponent } from './components/mini-call/mini-call.component';
 
 
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -46,6 +47,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ViewCounsellorProfileComponent } from './components/view-counsellor-profile/view-counsellor-profile.component';
+import { ErrorPopupComponent } from './components/error-popup/error-popup.component';
 
 
 export function authInterceptor() {
@@ -78,8 +80,8 @@ let appInjector: Injector;
   declarations: [AppComponent,
     CounsellorNotificationsComponent,
     CounsellorProfileComponent,
-    CounsellorDashboardComponent,
-    FooterComponent,
+    
+
     UserProfileComponent,
     UserNotificationsComponent,
     UserDashboardComponent,
@@ -87,15 +89,12 @@ let appInjector: Injector;
     CounsellorLoginComponent,
     CheckoutComponent,
     CounsellorCallComponent,
-    CallComponent,
-    CounsellorRegisterComponent,
     ViewCounsellorProfileComponent,
     HomeFooterComponent,
-    WalletComponent, // Added WalletComponent
     ],
   imports: [
     BrowserModule,
-    IonicModule.forRoot(),
+    IonicModule.forRoot({ animated: false }),
     AppRoutingModule,
     FormsModule,
     ReactiveFormsModule,
@@ -103,14 +102,14 @@ let appInjector: Injector;
     HttpClientModule,
     CommonModule,
     SocketIoModule,
-    ProblemSelectionComponent,
     MatFormFieldModule,
     MatInputModule,
     MatDatepickerModule,
     MatNativeDateModule,
     BrowserAnimationsModule,
-
-   
+    FooterComponent,
+    CallComponent, // Add CallComponent here
+    MiniCallComponent // Add MiniCallComponent here
   ],
   providers: [
     AuthService,

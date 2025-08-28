@@ -2,10 +2,14 @@
 // `ng build` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
+import { a } from "@angular/material/ripple.d-BT30YVLB";
+
 export const environment = {
   production: false, 
-  wsUrl: 'ws://192.168.1.34:8000',
-  apiUrl: 'http://192.168.1.34:8000/', // Update with your API URL
+  wsUrl: 'wss://counsellor-backend-13.onrender.com',
+  apiUrl: 'https://counsellor-backend-13.onrender.com', // Update with your API URL
+  // wsUrl: 'wss://localhost:8000',
+  // apiUrl: 'http://localhost:8000',
   firebase: {
     apiKey: "AIzaSyAenoNfxm6XyIWrad5hocYwKTlqO3roKa8",
     authDomain: "counsellor-7cb91.firebaseapp.com",

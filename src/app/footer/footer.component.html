@@ -1,17 +1,15 @@
-<ion-tab-bar slot="bottom">
+<ion-tab-bar slot="bottom"> 
+  <ion-tab-button (click)="navigateTo('/counsellor-dashboard')">
+      <ion-icon name="home-outline"></ion-icon>
+    <ion-label>Dashboard</ion-label>
+  </ion-tab-button>
   <ion-tab-button (click)="navigateTo(['/counsellor-profile', counsellorId])">
     <ion-icon name="person-outline"></ion-icon>
     <ion-label>Profile</ion-label>
   </ion-tab-button>
-  <ion-tab-button >
-    <ion-icon name="notifications-outline"></ion-icon>
-    <ion-label>Notifications</ion-label>
-  </ion-tab-button>
- 
-  <ion-tab-button (click)="toggleStatus()">
-    <ion-icon [name]="isActive ? 'toggle-outline' : 'toggle-off-outline'"></ion-icon>
-    <ion-label>{{ isActive ? 'Active' : 'Inactive' }}</ion-label>
-  </ion-tab-button>
+
+
+
   <ion-tab-button (click)="navigateToCall()" [disabled]="!activeBookingId">
     <ion-icon name="call-outline"></ion-icon>
     <ion-label>Call</ion-label>

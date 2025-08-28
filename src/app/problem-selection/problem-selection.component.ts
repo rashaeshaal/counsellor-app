@@ -4,14 +4,14 @@ import { catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular'; // Import IonicModule for Ionic components
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-problem-selection',
   templateUrl: './problem-selection.component.html',
   styleUrls: ['./problem-selection.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule] // Add IonicModule
+  imports: [IonicModule, CommonModule, RouterModule]
 })
 export class ProblemSelectionComponent implements OnInit {
   problems: Problem[] = [];

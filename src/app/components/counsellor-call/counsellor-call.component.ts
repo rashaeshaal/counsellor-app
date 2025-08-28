@@ -1,10 +1,12 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component, OnDestroy, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription, interval } from 'rxjs';
+import { Subscription, interval, of, Observable } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { WebrtcService } from 'src/app/webrtc.service';
 import { ToastController } from '@ionic/angular';
+import { NotificationService } from 'src/app/services/notification.service';
 
 @Component({
   selector: 'app-counsellor-call',
@@ -39,7 +41,8 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
     private router: Router,
     private route: ActivatedRoute,
     private webrtcService: WebrtcService,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit() {
@@ -48,14 +51,14 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
       const bookingIdFromParams = params['bookingId'] ? parseInt(params['bookingId'], 10) : undefined;
       if (bookingIdFromParams && !isNaN(bookingIdFromParams)) {
         this.bookingId = bookingIdFromParams;
-        this.loadBookingDetails();
+        this.loadBookingDetails().subscribe();
         this.initializeWebSocket(this.bookingId);
       } else if (history.state.bookingId) {
         const bookingIdFromState = parseInt(history.state.bookingId, 10);
         if (!isNaN(bookingIdFromState)) {
           this.bookingId = bookingIdFromState;
           this.clientInfo = history.state.clientInfo || {};
-          this.loadBookingDetails();
+          this.loadBookingDetails().subscribe();
           this.initializeWebSocket(this.bookingId);
         } else {
           this.fetchActiveBooking();
@@ -75,7 +78,7 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
         console.log('CounsellorCallComponent: Navigation state bookingId:', this.bookingId);
         if (this.bookingId !== undefined) {
           this.initializeWebSocket(this.bookingId);
-          this.loadBookingDetails();
+          this.loadBookingDetails().subscribe();
         }
       } else {
         this.fetchActiveBooking();
@@ -118,7 +121,7 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
           console.log(`Fetched active booking ID: ${this.bookingId}`);
           if (this.bookingId !== undefined) {
             this.initializeWebSocket(this.bookingId);
-            this.loadBookingDetails();
+            this.loadBookingDetails().subscribe();
           }
         } else {
           console.log('No active bookings found');
@@ -159,84 +162,35 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
     });
   }
 
-  private async loadBookingDetails() {
+  private loadBookingDetails(): Observable<any> {
     if (this.bookingId === undefined) {
       console.warn('No booking ID for loading details');
-      return;
+      return of(null);
     }
 
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${localStorage.getItem('access_token') ?? ''}`
     });
 
-    const bookingSub = this.http.get(`${environment.apiUrl}/api/counsellor/bookings/${this.bookingId}/`, { headers })
-      .subscribe({
-        next: (response: any) => {
+    return this.http.get(`${environment.apiUrl}/api/counsellor/bookings/${this.bookingId}/`, { headers })
+      .pipe(
+        tap((response: any) => {
           console.log('Booking details loaded:', response);
           this.clientInfo = response.user_details || response.client || {};
           if (!this.clientInfo.name) {
             this.clientInfo.name = response.user_name || 'Client';
           }
           this.sessionDuration = response.session_duration;
-        },
-        error: (error) => {
+        }),
+        catchError((error) => {
           console.error('Failed to load booking details:', error);
           this.showToast('Failed to load booking information', 'danger');
-        }
-      });
-
-    this.subscriptions.push(bookingSub);
+          return of(null);
+        })
+      );
   }
 
-  private startPollingForIncomingCall() {
-    console.log('Starting polling for incoming call');
-    const pollingSub = interval(5000).subscribe(() => {
-      if (this.isDestroyed || this.callState === 'connected' || this.callState === 'ended') {
-        console.log('Stopping polling due to call state:', this.callState);
-        pollingSub.unsubscribe();
-        return;
-      }
-      if (this.bookingId !== undefined) {
-        this.checkForIncomingCall();
-      } else {
-        console.log('No booking ID, fetching active booking for polling');
-        this.fetchActiveBooking();
-      }
-    });
-
-    this.subscriptions.push(pollingSub);
-  }
-
-  private checkForIncomingCall() {
-    if (this.bookingId === undefined) {
-      console.warn('No booking ID, cannot check for incoming call');
-      return;
-    }
-
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${localStorage.getItem('access_token') ?? ''}`
-    });
-
-    const incomingCallSub = this.http.get(`${environment.apiUrl}/api/call/status/${this.bookingId}/`, { headers })
-      .subscribe({
-        next: (response: any) => {
-          console.log('Call status response:', response);
-          if (['incoming', 'waiting', 'pending'].includes(response.status)) { // Add 'pending'
-            this.hasIncomingCall = true;
-            this.clientInfo = { name: response.user_name || this.clientInfo.name || 'Client' };
-            this.showToast(`Incoming call from ${this.clientInfo.name}`, 'primary');
-          } else {
-            console.log('No incoming call detected:', response.status);
-          }
-        },
-        error: (error) => {
-          console.error('Failed to check call status:', error);
-          this.showToast('Failed to check call status', 'danger');
-        }
-      });
-
-    this.subscriptions.push(incomingCallSub);
-  }
+  
 
   private setupCallStateSubscription() {
     const callStateSub = this.webrtcService.getCallStateObservable().subscribe((state: string) => {
@@ -259,7 +213,7 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
                 this.showToast('Connecting to call...', 'primary');
                 break;
             case 'connected':
-                this.startCallTimer();
+                this.startCallTimer(); 
                 this.hasIncomingCall = false;
                 this.incomingCallMessage = '';
                 this.showToast('Call connected successfully!', 'success');
@@ -290,17 +244,16 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
         console.log('Received message in CounsellorCallComponent:', message);
         
         if (message.type === 'call_initiated') {
-            this.hasIncomingCall = true;
-            this.clientInfo = message.user_name ? { name: message.user_name } : this.clientInfo;
-            this.incomingCallMessage = `Incoming call from ${this.clientInfo.name || 'Client'}`;
-            console.log(`Incoming call for booking ${message.booking_id}, client: ${this.clientInfo.name || 'Client'}`);
-            this.showToast(this.incomingCallMessage, 'primary');
-            
             const bookingIdFromMessage = parseInt(message.booking_id, 10);
-            if (!this.bookingId && bookingIdFromMessage && !isNaN(bookingIdFromMessage)) {
+            if (bookingIdFromMessage && !isNaN(bookingIdFromMessage)) {
                 this.bookingId = bookingIdFromMessage;
-
-              }
+                this.loadBookingDetails().subscribe(() => {
+                    this.hasIncomingCall = true;
+                    this.incomingCallMessage = `Incoming call from ${this.clientInfo.name || 'Client'}`;
+                    // Use NotificationService to show toast on dashboard
+                    this.notificationService.notifyIncomingCall(this.bookingId!, this.clientInfo.name || 'Client');
+                });
+            }
         } else if (message.type === 'call_accepted') {
             // This is received by the user when counsellor accepts
             this.hasIncomingCall = false;
@@ -474,6 +427,45 @@ export class CounsellorCallComponent implements OnInit, OnDestroy, AfterViewInit
     this.webrtcService.endCall();
     this.clearTimer();
     this.hasIncomingCall = false;
+
+    // Calculate actual duration
+    let actualDurationMinutes = 0;
+    if (this.callStartTime) {
+      const now = new Date();
+      const diff = now.getTime() - this.callStartTime.getTime();
+      actualDurationMinutes = Math.floor(diff / 60000); // Convert milliseconds to minutes
+    }
+
+    // Calculate remaining minutes
+    let remainingMinutes = 0;
+    if (this.sessionDuration !== null && actualDurationMinutes < this.sessionDuration) {
+      remainingMinutes = this.sessionDuration - actualDurationMinutes;
+    }
+
+    // Send data to backend to credit remaining minutes
+    if (remainingMinutes > 0) {
+      const accessToken = localStorage.getItem('access_token');
+      if (accessToken) {
+        this.http.post(`${environment.apiUrl}/api/call/credit_minutes/`, {
+          booking_id: this.bookingId,
+          booked_duration: this.sessionDuration,
+          actual_duration: actualDurationMinutes,
+          remaining_minutes: remainingMinutes
+        }, {
+          headers: new HttpHeaders({ 'Authorization': `Bearer ${accessToken}` })
+        }).subscribe({
+          next: (response) => {
+            console.log('Minutes credited successfully:', response);
+            this.showToast(`Credited ${remainingMinutes} minutes to wallet.`, 'success');
+          },
+          error: (error) => {
+            console.error('Failed to credit minutes:', error);
+            this.showToast('Failed to credit remaining minutes.', 'danger');
+          }
+        });
+      }
+    }
+
     this.router.navigate(['/counsellor-dashboard']);
 }
 

@@ -26,7 +26,7 @@ export interface UserProblem {
   providedIn: 'root'
 })
 export class ProblemApiService {
-  private apiUrl = 'http://192.168.1.34:8000/api/dashboard'; // Replace with your actual backend API URL
+  private apiUrl = 'https://counsellor-backend-13.onrender.com/api/dashboard'; // Replace with your actual backend API URL
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 

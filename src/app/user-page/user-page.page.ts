@@ -1,14 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { ModalController, ModalOptions, ToastController, IonicModule } from '@ionic/angular';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { ModalController, ModalOptions, ToastController } from '@ionic/angular';
 import { AuthService } from '../services/auth.service';
 import { OtpComponent } from './otp/otp.component';
-import { Auth, RecaptchaVerifier } from '@angular/fire/auth';
 import { environment } from 'src/environments/environment';
-import { getFirestore, doc, getDoc, setDoc, increment } from 'firebase/firestore';
-import { getApp } from 'firebase/app';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-user-page',
@@ -21,53 +17,37 @@ export class UserPagePage implements OnInit {
     phone: new FormControl(null, {
       validators: [
         Validators.required,
-        Validators.pattern('^[0-9]{10}$'), // Enforce exactly 10 digits
+        Validators.pattern('^[0-9]{10}$'),
       ],
     }),
   });
 
-  isLoading: boolean = false; // Add isLoading property
+  isLoading: boolean = false;
   isTestMode: boolean = !environment.production;
+  
+  // Test phone numbers for development
   testPhoneNumbers: { [key: string]: string } = {
     '+917510780558': '789654',
     '+918547905362': '123456',
-    '+917744778540':'123456',
+    '+917744778540': '123456',
     '+919988774455': '123456',
-    '+918855221144':'123456',
-    '+917878789696':'123456',
-    '+919744002048':'123456',
-    '+918129602048':'123456',
-    
-
-  
+    '+918855221144': '123456',
+    '+917878789696': '123456',
+    '+919744002048': '123456',
+    '+918129602048': '123456',
+    '+913210456987': '123456',
   };
-
-  private recaptchaVerifier!: RecaptchaVerifier;
 
   constructor(
     private modalCtrl: ModalController,
     private toastCtrl: ToastController,
     private auth: AuthService,
-    private angularFireAuth: Auth,
     public router: Router
   ) {}
 
   ngOnInit() {
-    this.recaptchaVerifier = new RecaptchaVerifier(
-      this.angularFireAuth,
-      'recaptcha-container',
-      {
-        size: 'invisible',
-        callback: () => {
-          console.log('reCAPTCHA verified');
-        },
-        'expired-callback': () => {
-          console.log('reCAPTCHA expired');
-          this.showToast('reCAPTCHA expired. Please try again.', 'danger');
-        },
-      }
-    );
-    (window as any).recaptchaVerifier = this.recaptchaVerifier;
+    // Remove all AngularFire and RecaptchaVerifier setup
+    console.log('User page initialized');
   }
 
   async signIn() {
@@ -80,33 +60,17 @@ export class UserPagePage implements OnInit {
       this.isLoading = true;
       const phoneNumber = '+91' + this.form.value.phone;
 
-      // Check SMS limit in production mode or use test number
-      if (!this.isTestMode) {
-        const db = getFirestore(getApp());
-        const usageRef = doc(db, 'sms_usage', phoneNumber);
-        const usageDoc = await getDoc(usageRef);
-        if (usageDoc.exists() && usageDoc.data()?.['count'] >= 10) {
-          this.showToast('Daily SMS limit reached.', 'danger');
-          this.isLoading = false;
-          return;
-        }
-        await this.auth.signInWithPhoneNumber(phoneNumber);
-        await setDoc(
-          usageRef,
-          {
-            count: increment(1),
-            last_updated: new Date(),
-          },
-          { merge: true }
-        );
-      } else if (this.testPhoneNumbers[phoneNumber]) {
-        console.log('Using test phone number:', phoneNumber);
-        await this.auth.signInWithPhoneNumber(phoneNumber);
-      } else {
-        this.showToast('Invalid test phone number.', 'danger');
+      console.log('Attempting sign-in with:', phoneNumber);
+
+      // In test mode, validate test numbers
+      if (this.isTestMode && !this.testPhoneNumbers[phoneNumber]) {
+        this.showToast('Please use a valid test phone number', 'danger');
         this.isLoading = false;
         return;
       }
+
+      // Send OTP using the simplified AuthService
+      await this.auth.signInWithPhoneNumber(phoneNumber);
 
       // Present OTP modal
       const options: ModalOptions = {
@@ -116,6 +80,7 @@ export class UserPagePage implements OnInit {
           testOtp: this.testPhoneNumbers[phoneNumber],
         },
       };
+      
       const modal = await this.modalCtrl.create(options);
       await modal.present();
       const { data } = await modal.onWillDismiss();
@@ -124,21 +89,16 @@ export class UserPagePage implements OnInit {
         this.form.reset();
         console.log('Login successful, checking user type...');
         
-        // Navigate based on whether user is new or existing
         if (data.is_new_user) {
-          console.log('New user detected, navigating to user-registration');
-          this.router.navigate(['/user-registration']); // Ensure this path matches routing
+          this.router.navigate(['/user-registration']);
         } else {
-          console.log('Existing user detected, navigating to user-dashboard');
           this.router.navigate(['/user-dashboard']);
         }
       }
+      
     } catch (e: any) {
       console.error('Sign-in error:', e);
-      this.showToast(`Failed to send OTP: ${e.message || 'Unknown error'}`, 'danger');
-      if (e.code === 'auth/operation-not-allowed') {
-        this.showToast('Phone authentication not enabled or billing issue. Use test numbers.', 'danger');
-      }
+      this.showToast(`Failed to send OTP: ${e.message}`, 'danger');
     } finally {
       this.isLoading = false;
     }

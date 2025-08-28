@@ -1,0 +1,10 @@
+<div *ngIf="isVisible" class="mini-call-container" (click)="goToCall()">
+  <div class="call-info">
+    <ion-icon name="call-outline"></ion-icon>
+    <span class="counsellor-name">{{ counsellorName }}</span>
+    <span class="call-state">{{ callStateText }}</span>
+  </div>
+  <ion-button fill="clear" color="light" (click)="endCall(); $event.stopPropagation();">
+    <ion-icon name="close-circle-outline"></ion-icon>
+  </ion-button>
+</div>

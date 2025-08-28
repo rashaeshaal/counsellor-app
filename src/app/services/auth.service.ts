@@ -2,84 +2,82 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
-import { getAuth, signInWithPhoneNumber as angularFireSignInWithPhoneNumber, Auth, ConfirmationResult } from '@angular/fire/auth';
-import { RecaptchaVerifier } from '@angular/fire/auth';
-import { getApp } from 'firebase/app';
-import { Capacitor } from '@capacitor/core';
 
-declare global {
-  interface Window {
-    cordova: any;
-    Capacitor: any;
-    recaptchaVerifier: RecaptchaVerifier;
-  }
-}
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private verificationId: string | null = null;
+  private bpiUrl = 'https://counsellor-backend-13.onrender.com';
+  private phoneVerificationPromise: Promise<string> | null = null;
 
-  private verificationId: string | null = null; // Stores the verification ID received from Firebase
-  private confirmationResult: ConfirmationResult | null = null; 
-  private bpiUrl = 'http://192.168.1.34:8000/'; 
+  constructor(private http: HttpClient) {}
 
-  constructor(private auth: Auth, private http: HttpClient) {
-    // Ensure Firebase app is initialized before attempting any auth operations
-    try {
-      getApp(); // This will throw an error if no Firebase app has been initialized
-      console.log('Firebase app is initialized');
-    } catch (e) {
-      console.error('Firebase app not initialized:', e);
-      // Re-throw to prevent the service from being used in an uninitialized state
-      throw new Error('Firebase app not initialized. Check AppModule configuration.');
-    }
-  }
-  getToken(): string | null {
+/*************  ✨ Windsurf Command ⭐  *************/
+  /**
+   * Returns the stored access token from local storage.
+   * @returns {string | null} The access token if stored, otherwise null.
+   */
+/*******  f9510e40-53ec-4730-b67a-e28efe617edd  *******/  getToken(): string | null {
     return localStorage.getItem('access_token');
   }
 
   /**
-   * Initiates the phone number sign-in process.
-   * It handles both native (Capacitor) and web environments.
-   * @param phoneNumber The phone number to sign in with (e.g., '+911234567890').
+   * Initiates phone number sign-in using Capacitor Firebase Authentication plugin
+   * Uses event listeners for phone verification flow
    */
   async signInWithPhoneNumber(phoneNumber: string): Promise<void> {
     try {
-      // Use Capacitor.isNativePlatform() for accurate platform detection
-      const isNative = Capacitor.isNativePlatform();
-      console.log('Platform:', isNative ? 'Native' : 'Web');
-      console.log('Phone number:', phoneNumber);
+      console.log('[DEBUG] signInWithPhoneNumber called with:', phoneNumber);
+      
+      // Create a promise that resolves when verification ID is received
+      this.phoneVerificationPromise = new Promise((resolve, reject) => {
+        // Set up listeners before starting the sign-in process
+        const setupListeners = async () => {
+          // Listen for phone code sent (gives us the verification ID)
+          await FirebaseAuthentication.addListener('phoneCodeSent', (event) => {
+            console.log('[DEBUG] Phone code sent, verification ID:', event.verificationId);
+            this.verificationId = event.verificationId;
+            resolve(event.verificationId);
+          });
 
-      if (isNative) {
-        // Use the Capacitor Firebase Authentication plugin for native platforms
-        // This plugin abstracts away the reCAPTCHA for native environments.
-        const result = await FirebaseAuthentication.signInWithPhoneNumber({ phoneNumber });
-        // The result from Capacitor plugin might need a type assertion to access verificationId
-        this.verificationId = (result as any).verificationId;
-        console.log('Native verification ID:', this.verificationId);
-      } else {
-        // For web environments, use the standard AngularFire `signInWithPhoneNumber`
-        // This requires a reCAPTCHA verifier to prevent abuse.
-        if (!(window.recaptchaVerifier)) {
-          // If reCAPTCHA verifier is not initialized (e.g., component not loaded yet), throw an error
-          throw new Error('reCAPTCHA verifier not initialized');
-        }
-        // Perform sign-in using AngularFire's method with the global reCAPTCHA verifier
-        this.confirmationResult = await angularFireSignInWithPhoneNumber(this.auth, phoneNumber, window.recaptchaVerifier);
-        this.verificationId = this.confirmationResult.verificationId;
-        console.log('Web verification ID:', this.verificationId);
-      }
+          // Listen for phone verification failure
+          await FirebaseAuthentication.addListener('phoneVerificationFailed', (event) => {
+            console.error('[DEBUG] Phone verification failed:', event.message);
+            reject(new Error(event.message || 'Phone verification failed'));
+          });
+
+          // Listen for phone verification completed (auto-verification)
+          await FirebaseAuthentication.addListener('phoneVerificationCompleted', (event) => {
+            console.log('[DEBUG] Phone verification completed automatically');
+            // This means verification was completed automatically (instant verification)
+            resolve('auto-verified');
+          });
+        };
+
+        // Setup listeners first, then start sign-in
+        setupListeners().then(() => {
+          // Start the phone number sign-in process
+          FirebaseAuthentication.signInWithPhoneNumber({
+            phoneNumber: phoneNumber
+          }).catch((error) => {
+            console.error('[DEBUG] signInWithPhoneNumber error:', error);
+            reject(this.handleFirebaseError(error));
+          });
+        }).catch(reject);
+      });
+
+      // Wait for the verification process to start
+      await this.phoneVerificationPromise;
+      
     } catch (e: any) {
-      console.error('signInWithPhoneNumber error:', e);
-      // Throw a more user-friendly error message
-      throw new Error(e.message || 'Failed to send OTP');
+      console.error('[DEBUG] signInWithPhoneNumber error:', e);
+      throw this.handleFirebaseError(e);
     }
   }
 
   /**
-   * Verifies the OTP entered by the user.
-   * @param otp The One-Time Password entered by the user.
-   * @returns A Promise that resolves with an object containing the Firebase ID token.
+   * Verifies the OTP using Capacitor Firebase Authentication plugin
    */
   async verifyOtp(otp: string): Promise<{ idToken: string }> {
     try {
@@ -87,48 +85,85 @@ export class AuthService {
         throw new Error('No verification ID available. Please request OTP first.');
       }
 
-      const isNative = Capacitor.isNativePlatform();
-      let idToken: string;
+      console.log('[DEBUG] Verifying OTP:', otp, 'with verification ID:', this.verificationId);
 
-      if (isNative) {
-        // For native, confirm the verification code using the Capacitor plugin
-        await FirebaseAuthentication.confirmVerificationCode({
-          verificationId: this.verificationId,
-          verificationCode: otp
-        });
-        // Get the ID token after successful confirmation
-        const tokenResult = await FirebaseAuthentication.getIdToken();
-        idToken = tokenResult.token;
-      } else {
-        // For web, confirm using the ConfirmationResult object
-        if (!this.confirmationResult) {
-          throw new Error('No confirmation result available.');
-        }
-        const credential = await this.confirmationResult.confirm(otp);
-        // Get the ID token from the authenticated user credential
-        idToken = await credential.user.getIdToken();
-      }
+      // Use Capacitor plugin for verification
+      const result = await FirebaseAuthentication.confirmVerificationCode({
+        verificationId: this.verificationId,
+        verificationCode: otp
+      });
 
-      return { idToken };
+      console.log('[DEBUG] Verification successful:', result);
+
+      // Get the ID token
+      const tokenResult = await FirebaseAuthentication.getIdToken();
+      return { idToken: tokenResult.token };
+
     } catch (e: any) {
-      console.error('verifyOtp error:', e);
-      // Throw a more user-friendly error message for invalid OTP
-      throw new Error(e.message || 'Invalid OTP');
+      console.error('[DEBUG] verifyOtp error:', e);
+      throw this.handleFirebaseError(e);
     }
   }
 
   /**
-   * Clears the stored verification ID and confirmation result.
-   * This should be called after successful verification or if the process needs to be restarted.
+   * Handle Firebase-specific errors with user-friendly messages
+   */
+  private handleFirebaseError(error: any): Error {
+    if (error.code) {
+      switch (error.code) {
+        case 'auth/operation-not-allowed':
+          return new Error('Phone authentication not enabled in Firebase Console');
+        case 'auth/quota-exceeded':
+          return new Error('SMS quota exceeded. Try again later or use test numbers.');
+        case 'auth/invalid-phone-number':
+          return new Error('Invalid phone number format. Use international format (+91xxxxxxxxxx)');
+        case 'auth/invalid-verification-code':
+          return new Error('Invalid OTP. Please check and try again.');
+        case 'auth/code-expired':
+          return new Error('OTP has expired. Please request a new one.');
+        case 'auth/too-many-requests':
+          return new Error('Too many requests. Please try again later.');
+        default:
+          if (error.message?.includes('insufficient') || error.message?.includes('permission')) {
+            return new Error('Firebase configuration error. Check package name and SHA-256 fingerprint in Firebase Console.');
+          }
+          return new Error(error.message || 'Authentication failed');
+      }
+    }
+    return new Error(error.message || 'Authentication failed');
+  }
+
+  /**
+   * Clears the stored verification ID and removes listeners
    */
   clearVerificationId(): void {
     this.verificationId = null;
-    this.confirmationResult = null;
+    this.phoneVerificationPromise = null;
+    // Remove all listeners to prevent memory leaks
+    FirebaseAuthentication.removeAllListeners();
   }
 
   updateUserProfile(userDetails: any): Observable<any> {
     const token = this.getToken();
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     return this.http.post(`${this.bpiUrl}/api/auth/register-user/`, userDetails, { headers });
+  }
+
+  setLastDashboard(dashboardType: 'user' | 'counsellor'): void {
+    localStorage.setItem('lastDashboard', dashboardType);
+  }
+
+  getLastDashboard(): 'user' | 'counsellor' | null {
+    return localStorage.getItem('lastDashboard') as 'user' | 'counsellor' | null;
+  }
+
+  clearLastDashboard(): void {
+    localStorage.removeItem('lastDashboard');
+  }
+
+  logout(): void {
+    localStorage.removeItem('access_token'); // Assuming this is how token is stored
+    this.clearLastDashboard();
+    // You might want to add router.navigate(['/login']) here
   }
 }

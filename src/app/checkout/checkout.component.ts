@@ -5,6 +5,7 @@ import { environment } from 'src/environments/environment';
 import { ToastController } from '@ionic/angular';
 import { WebrtcService } from '../webrtc.service';
 import { Subscription } from 'rxjs';
+import { VoiceRecorder } from 'capacitor-voice-recorder';
 
 // Define interfaces for type safety
 interface User {
@@ -22,6 +23,7 @@ interface Counsellor {
   session_time?: string;
   duration?: number | string;
   price?: number | string;
+  profile_photo?: string;
 }
 
 interface Order {
@@ -53,6 +55,7 @@ export class CheckoutComponent implements OnInit {
   private subscriptions: Subscription[] = [];
   private webrtcService: WebrtcService | null = null;
   private userProfileLoaded: boolean = false; // Track if user profile is loaded
+  userExtraMinutes: number | null = null;
 
   constructor(
     private http: HttpClient,
@@ -94,6 +97,7 @@ export class CheckoutComponent implements OnInit {
     this.loadUserProfile();
     this.loadCounsellorPaymentSettings();
     this.initializeWebRTCService();
+    this.loadUserExtraMinutes();
   }
 
   ngOnDestroy() {
@@ -123,8 +127,8 @@ export class CheckoutComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Failed to load counsellor payment settings:', error);
-        this.showToast('Unable to load counsellor payment settings.', 'warning');
+        
+    
       }
     });
     this.subscriptions.push(sub);
@@ -152,14 +156,34 @@ export class CheckoutComponent implements OnInit {
         this.userProfileLoaded = true;
       },
       error: (error) => {
-        console.error('Checkout: User profile error:', error.status, error.message, error.error);
-        this.showToast('Failed to load user profile. Using default values.', 'warning');
+   
+
         this.user = { name: 'Guest', email: 'guest@example.com', phone_number: '9999999999' };
         this.userProfileLoaded = true;
       },
     });
 
     this.subscriptions.push(profileSub);
+  }
+
+  private loadUserExtraMinutes() {
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${localStorage.getItem('access_token') ?? ''}`
+    });
+
+    const extraMinutesSub = this.http.get(`${environment.apiUrl}/api/user/wallet/extra_minutes/`, { headers }).subscribe({
+      next: (response: any) => {
+        console.log('User extra minutes response:', response);
+        if (response.extra_minutes !== undefined) {
+          this.userExtraMinutes = response.extra_minutes;
+        }
+      },
+      error: (error) => {
+    
+     
+      }
+    });
+    this.subscriptions.push(extraMinutesSub);
   }
 
   async initiatePayment() {
@@ -275,13 +299,18 @@ export class CheckoutComponent implements OnInit {
       .subscribe({
         next: (response: any) => {
           console.log('Payment verification response:', response);
-          if (response.status === 'Payment credited to wallet') {
-            this.showToast('Payment credited !', 'success');
-            setTimeout(() => {
-              this.initiateCall(response.booking_id || bookingId);
-            }, 1000);
+          console.log('Payment verification response status:', response.status);
+          if (response.status === 'Payment Successful') {
+            this.showToast('Payment Successful!', 'success');
+            this.initiateCall(response.booking_id || bookingId);
           } else {
-            this.showToast('Unexpected payment status.', 'danger');
+            this.showToast('Status from backend: ' + response.status, 'primary');
+            console.log('Payment verification response:', response);
+            console.log('Payment verification response status:', response.status);
+
+// 👇 Temporary debugging
+          
+            
           }
         },
         error: (error) => {
@@ -309,45 +338,49 @@ export class CheckoutComponent implements OnInit {
           next: async (response: any) => {
             console.log('Call initiation response:', response);
             
-            setTimeout(async () => {
-              if (this.webrtcService) {
-                try {
-                  await this.webrtcService.startCall(bookingId ?? 0, { audio: true, video: false }, accessToken, this.sessionDuration ?? undefined);
-                  
-                  const messageSub = this.webrtcService.getMessageObservable().subscribe((message: any) => {
-                    console.log('Received WebRTC message in checkout:', message);
-                    if (this.webrtcService) {
-                      this.webrtcService.handleMessage(message);
-                    }
-                  });
+            // Request microphone permission
+            const hasPermission = await this.requestMicrophonePermission();
+            if (!hasPermission) {
+              return; // Stop if permission not granted
+            }
 
-                  const stateSub = this.webrtcService.getCallStateObservable().subscribe((state: string) => {
-                    console.log('Call state changed in checkout:', state);
-                    if (state === 'failed') {
-                      this.showToast('Failed to connect to the call. Please check your network or try again.', 'danger');
-                    } else if (state === 'connected') {
-                      this.showToast('Call connected successfully!', 'success');
-                    } else if (state === 'calling') {
-                      this.showToast('Calling counsellor...', 'primary');
-                    }
-                  });
+            if (this.webrtcService) {
+              try {
+                await this.webrtcService.startCall(bookingId ?? 0, { audio: true, video: false }, accessToken, this.userExtraMinutes ?? this.sessionDuration ?? undefined);
+                
+                const messageSub = this.webrtcService.getMessageObservable().subscribe((message: any) => {
+                  console.log('Received WebRTC message in checkout:', message);
+                  if (this.webrtcService) {
+                    this.webrtcService.handleMessage(message);
+                  }
+                });
 
-                  this.subscriptions.push(messageSub, stateSub);
+                const stateSub = this.webrtcService.getCallStateObservable().subscribe((state: string) => {
+                  console.log('Call state changed in checkout:', state);
+                  if (state === 'failed') {
+                    this.showToast('Failed to connect to the call. Please check your network or try again.', 'danger');
+                  } else if (state === 'connected') {
+                    this.showToast('Call connected successfully!', 'success');
+                  } else if (state === 'ringing') { // Changed from 'calling' to 'ringing'
+                    this.showToast('Ringing...', 'primary');
+                  }
+                });
 
-                  this.showToast('Call initiated! Waiting for counsellor...', 'success');
-                  
-                  this.router.navigate(['/call'], {
-                    state: { bookingId, counsellor: this.counsellor },
-                  });
-                } catch (webrtcError) {
-                  console.error('WebRTC error:', webrtcError);
-                  this.showToast('Failed to initialize call. Please check your network or try again.', 'danger');
-                }
-              } else {
-                console.error('WebRTC service not available');
-                this.showToast('Call service not available.', 'danger');
+                this.subscriptions.push(messageSub, stateSub);
+
+                this.showToast('Call initiated! Waiting for counsellor...', 'success');
+                
+                this.router.navigate(['/call'], {
+                  state: { bookingId, counsellor: this.counsellor },
+                });
+              } catch (webrtcError) {
+                console.error('WebRTC error:', webrtcError);
+                this.showToast('Failed to initialize call. Please check your network or try again.', 'danger');
               }
-            }, 1500);
+            } else {
+              console.error('WebRTC service not available');
+              this.showToast('Call service not available.', 'danger');
+            }
           },
           error: (error) => {
             console.error('Call initiation error:', error);
@@ -374,5 +407,20 @@ export class CheckoutComponent implements OnInit {
 
   goToDashboard(): void {
     this.router.navigate(['/user-dashboard']);
+  }
+
+  async requestMicrophonePermission(): Promise<boolean> {
+    const hasPermission = await VoiceRecorder.hasAudioRecordingPermission();
+    if (hasPermission.value) {
+      return true;
+    }
+
+    const requestResult = await VoiceRecorder.requestAudioRecordingPermission();
+    if (requestResult.value) {
+      return true;
+    } else {
+      this.showToast('Microphone permission is required for calls.', 'danger');
+      return false;
+    }
   }
 }

@@ -1,33 +1,60 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { ToastController } from '@ionic/angular';
+import { Platform, ToastController } from '@ionic/angular';
 import { environment } from 'src/environments/environment';
 import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
+import { Location } from '@angular/common';
+import { App } from '@capacitor/app';
+import { Subscription } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-user-dashboard',
   templateUrl: './user-dashboard.component.html',
   styleUrls: ['./user-dashboard.component.scss'],
   standalone: false,
+  animations: []
 })
-export class UserDashboardComponent implements OnInit {
+export class UserDashboardComponent implements OnInit, OnDestroy {
   user: any = { name: 'Guest' };
   counsellors: any[] = [];
   filteredCounsellors: any[] = [];
   searchQuery: string = '';
   activeFilter: string = 'all';
 
+  private lastBackPress = 0;
+  private backButtonSubscription: Subscription | undefined;
+
   constructor(
     private http: HttpClient,
     private router: Router,
     private toastCtrl: ToastController,
     private sanitizer: DomSanitizer,
+    private platform: Platform,
+    private location: Location,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
     this.loadUserProfile();
     this.loadCounsellors();
+    this.authService.setLastDashboard('user');
+
+    this.backButtonSubscription = this.platform.backButton.subscribeWithPriority(10, () => {
+      // Check if the current route is the user dashboard
+      if (this.router.url === '/user-dashboard') {
+        if (Date.now() - this.lastBackPress < 2000) { // If second back press within 2 seconds
+          App.exitApp(); // Exit the app
+        } else {
+          this.showToast('Press back again to exit', 'warning');
+          this.lastBackPress = Date.now();
+        }
+      } else {
+        // If not on the dashboard, navigate back in history
+        this.location.back();
+      }
+    });
   }
 
   async loadUserProfile() {
@@ -142,8 +169,15 @@ export class UserDashboardComponent implements OnInit {
 
   getProfilePhotoSrc(photo: string): string {
     if (photo) {
-      return `${environment.apiUrl}${photo}`;
+      const baseUrl = environment.apiUrl.replace('/api', '');
+      return `${baseUrl}${photo}`;
     }
     return '';
+  }
+
+  ngOnDestroy() {
+    if (this.backButtonSubscription) {
+      this.backButtonSubscription.unsubscribe();
+    }
   }
 }

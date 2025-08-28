@@ -56,7 +56,7 @@ export class CounsellorProfileComponent implements OnInit {
 
   // Public method for navigation
   goBack() {
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['/counsellor-dashboard']);
   }
 
   toggleEditMode() {

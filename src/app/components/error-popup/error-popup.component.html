@@ -1,0 +1,11 @@
+<div class="error-popup-overlay" [class.show]="show">
+  <div class="error-popup-content">
+    <div class="error-popup-header">
+      <h2>Error</h2>
+      <button (click)="hidePopup()">&times;</button>
+    </div>
+    <div class="error-popup-body">
+      <p>{{ message }}</p>
+    </div>
+  </div>
+</div>
