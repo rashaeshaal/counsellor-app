@@ -5,7 +5,6 @@ import { environment } from 'src/environments/environment';
 
 export interface MediaConstraints {
   audio: boolean;
-  video: boolean;
 }
 
 @Injectable({
@@ -23,23 +22,29 @@ export class WebrtcService {
   private websocket: WebSocket | null = null;
   private bookingId: number | null = null;
   private accessToken: string | null = null;
-  private currentMediaConstraints: MediaConstraints = { audio: true, video: false };
+  private currentMediaConstraints: MediaConstraints = { audio: true };
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 3;
-  private isInitiator = false; // Track if this instance initiated the call
+  private maxReconnectAttempts = 2; // Reduced from 3
+  private isInitiator = false;
   private callTimer: any = null;
   private callStartTime: number | null = null;
   private ringingAudio: HTMLAudioElement | null = null;
   private iceCandidateQueue: RTCIceCandidateInit[] = [];
+  
+  // Performance optimization flags
+  private isConnecting = false;
+  private offerInProgress = false;
+  private answerInProgress = false;
 
   constructor(private http: HttpClient) {}
 
   private playRingingSound() {
     if (!this.ringingAudio) {
-      this.ringingAudio = new Audio('assets/audio/ringing.mp3'); // Make sure you have this audio file
+      this.ringingAudio = new Audio('assets/audio/ringing.mp3');
       this.ringingAudio.loop = true;
+      this.ringingAudio.volume = 0.5; // Reduce volume for mobile
     }
-    this.ringingAudio.play().catch(e => console.error('Error playing ringing sound:', e));
+    this.ringingAudio.play().catch(e => console.warn('Ringing sound not available:', e));
   }
 
   private stopRingingSound() {
@@ -56,60 +61,60 @@ export class WebrtcService {
       this.peerConnection.close();
     }
 
+    // Optimized ICE configuration for faster connection
     const configuration = {
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' },
-        // Recommended: Add a TURN server for improved connectivity, especially on restricted networks.
-        // Replace with your actual TURN server URL, username, and credential.
-        // Example:
-        // { urls: 'turn:your-turn-server.com:3478', username: 'your-username', credential: 'your-password' },
-      ]
+        { urls: 'stun:stun1.l.google.com:19302' }
+      ],
+      iceCandidatePoolSize: 10, // Pre-gather candidates
+      bundlePolicy: 'max-bundle' as RTCBundlePolicy,
+      rtcpMuxPolicy: 'require' as RTCRtcpMuxPolicy
     };
 
     this.peerConnection = new RTCPeerConnection(configuration);
-    console.log('Peer connection created with state:', this.peerConnection.signalingState);
 
     this.peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
-        console.log('Sending ICE candidate:', event.candidate);
+        console.log('Sending ICE candidate');
         this.sendMessage({
           type: 'ice-candidate',
           candidate: event.candidate,
           booking_id: this.bookingId
         });
-      } else {
-        console.log('All ICE candidates have been sent');
       }
     };
 
     this.peerConnection.ontrack = (event) => {
-      console.log('Received remote stream:', event.streams[0]);
+      console.log('Received remote stream');
       if (event.streams && event.streams[0]) {
         this.remoteStream = event.streams[0];
         this.remoteStreamSubject.next(this.remoteStream);
         
-        // Only set to connected if we actually receive tracks
         if (this.remoteStream.getTracks().length > 0) {
           this.callStateSubject.next('connected');
+          this.isConnecting = false;
         }
       }
     };
 
     this.peerConnection.onconnectionstatechange = () => {
       const state = this.peerConnection?.connectionState;
-      console.log('Peer connection state:', state);
+      console.log('Connection state:', state);
       
       switch (state) {
         case 'connected':
           this.callStateSubject.next('connected');
           this.stopRingingSound();
           this.reconnectAttempts = 0;
-          this.callStartTime = Date.now(); // Record call start time
+          this.callStartTime = Date.now();
+          this.isConnecting = false;
           break;
         case 'connecting':
-          this.callStateSubject.next('connecting');
+          if (!this.isConnecting) {
+            this.callStateSubject.next('connecting');
+            this.isConnecting = true;
+          }
           break;
         case 'disconnected':
           this.callStateSubject.next('disconnected');
@@ -117,23 +122,26 @@ export class WebrtcService {
           break;
         case 'failed':
           this.callStateSubject.next('failed');
+          this.isConnecting = false;
           this.attemptReconnection();
           break;
         case 'closed':
           this.callStateSubject.next('ended');
+          this.isConnecting = false;
           break;
       }
     };
 
     this.peerConnection.oniceconnectionstatechange = () => {
       const iceState = this.peerConnection?.iceConnectionState;
-      console.log('ICE connection state:', iceState);
+      console.log('ICE state:', iceState);
       
       switch (iceState) {
         case 'connected':
         case 'completed':
           if (this.callStateSubject.value !== 'connected') {
             this.callStateSubject.next('connected');
+            this.isConnecting = false;
           }
           break;
         case 'disconnected':
@@ -141,10 +149,8 @@ export class WebrtcService {
           break;
         case 'failed':
           this.callStateSubject.next('failed');
+          this.isConnecting = false;
           this.attemptReconnection();
-          break;
-        case 'checking':
-          this.callStateSubject.next('connecting');
           break;
       }
     };
@@ -152,86 +158,84 @@ export class WebrtcService {
 
   private ensurePeerConnection(): boolean {
     if (!this.peerConnection || this.peerConnection.signalingState === 'closed') {
-      console.log('Peer connection is null or closed, creating new one...');
+      console.log('Creating new peer connection');
       this.setupPeerConnection();
     }
-    
-    const isReady = !!(this.peerConnection && this.peerConnection.signalingState !== 'closed');
-    console.log('Peer connection ready:', isReady, 'State:', this.peerConnection?.signalingState);
-    return isReady;
+    return !!(this.peerConnection && this.peerConnection.signalingState !== 'closed');
   }
 
   private attemptReconnection() {
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+    if (this.reconnectAttempts < this.maxReconnectAttempts && !this.isConnecting) {
       this.reconnectAttempts++;
-      console.log(`Attempting reconnection ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
+      console.log(`Reconnection attempt ${this.reconnectAttempts}`);
       setTimeout(() => {
         this.reconnectWebSocket();
-      }, 1000 * Math.pow(2, this.reconnectAttempts));
+      }, 1000 * this.reconnectAttempts); // Linear backoff for faster retry
     } else {
       console.log('Max reconnection attempts reached');
       this.callStateSubject.next('failed');
-      this.messageSubject.next({ 
-        type: 'error', 
-        message: 'Failed to connect to call server after multiple attempts' 
-      });
+      this.isConnecting = false;
     }
   }
 
   private reconnectWebSocket() {
     if (this.bookingId && (!this.websocket || this.websocket.readyState !== WebSocket.OPEN)) {
-      console.log('Reconnecting WebSocket for booking:', this.bookingId);
       this.connectWebSocket(this.bookingId, this.accessToken);
     }
   }
 
-  // User initiates call (from checkout component)
-  async startCall(bookingId: number, constraints: MediaConstraints = { audio: true, video: false }, accessToken?: string, sessionDuration?: number): Promise<void> {
+  async startCall(bookingId: number, constraints: MediaConstraints = { audio: true }, accessToken?: string, sessionDuration?: number): Promise<void> {
+    if (this.isConnecting) {
+      console.warn('Call already in progress');
+      return;
+    }
+
     try {
+      this.isConnecting = true;
       if (sessionDuration) {
         this.startCallTimer(sessionDuration);
       }
+      
       this.bookingId = bookingId;
       this.accessToken = accessToken || localStorage.getItem('access_token') || null;
       this.currentMediaConstraints = constraints;
       this.reconnectAttempts = 0;
       this.isInitiator = true;
       
-      console.log('User starting call with constraints:', constraints);
       this.callStateSubject.next('initiating');
-      
-      // Setup peer connection
       this.setupPeerConnection();
       
-      // Get user media
-      this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
+      // Get media with mobile-optimized constraints
+      const mobileConstraints = {
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 16000, // Lower sample rate for mobile
+          channelCount: 1
+        }
+      };
+      
+      this.localStream = await navigator.mediaDevices.getUserMedia(mobileConstraints);
       this.localStreamSubject.next(this.localStream);
-      console.log('Local stream obtained:', this.localStream);
 
-      // Add tracks to peer connection
       if (this.ensurePeerConnection() && this.localStream) {
         this.localStream.getTracks().forEach(track => {
           if (this.peerConnection && this.localStream) {
-            console.log('Adding track to peer connection:', track.kind, 'State:', this.peerConnection.signalingState);
             this.peerConnection.addTrack(track, this.localStream);
           }
         });
-      } else {
-        throw new Error('Peer connection not ready');
       }
 
       if (!this.accessToken) {
-        console.error('No access token provided for WebSocket connection');
-        this.callStateSubject.next('failed');
         throw new Error('No authentication token available');
       }
 
-      // Connect to WebSocket
       await this.connectWebSocketAsync(bookingId, this.accessToken);
       this.callStateSubject.next('ringing');
       this.playRingingSound();
       
-      // Send call initiation message
+      // Immediate call initiation
       this.sendMessage({
         type: 'call_initiated',
         booking_id: this.bookingId,
@@ -241,99 +245,89 @@ export class WebrtcService {
     } catch (error) {
       console.error('Error starting call:', error);
       this.callStateSubject.next('failed');
+      this.isConnecting = false;
       throw error;
     }
   }
 
-  // Counsellor accepts incoming call
-  async acceptIncomingCall(bookingId: number, constraints: MediaConstraints = { audio: true, video: false }, accessToken?: string, sessionDuration?: number): Promise<void> {
-    try {
-        if (sessionDuration) {
-            this.startCallTimer(sessionDuration);
-        }
-        this.bookingId = bookingId;
-        this.accessToken = accessToken || localStorage.getItem('access_token') || null;
-        this.currentMediaConstraints = constraints;
-        this.reconnectAttempts = 0;
-        this.isInitiator = false;
-        
-        console.log('Counsellor accepting incoming call with bookingId:', bookingId, 'constraints:', constraints);
-        this.callStateSubject.next('accepting');
-        
-        // Ensure we have a fresh peer connection
-        if (this.peerConnection) {
-            console.log('Closing existing peer connection before accepting call');
-            this.peerConnection.close();
-        }
-        this.setupPeerConnection();
-        
-        // Get user media
-        try {
-            this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
-            console.log('Local stream obtained for counsellor:', this.localStream, 'Tracks:', this.localStream.getTracks());
-            this.localStreamSubject.next(this.localStream);
-        } catch (mediaError) {
-            console.error('Failed to get user media:', mediaError);
-            this.callStateSubject.next('failed');
-            throw new Error('Failed to access camera/microphone');
-        }
-
-        // Add tracks to peer connection
-        if (this.localStream && this.peerConnection) {
-            this.localStream.getTracks().forEach(track => {
-                if (this.peerConnection && this.localStream) {
-                    console.log('Adding track to peer connection:', track.kind, 'Enabled:', track.enabled);
-                    this.peerConnection.addTrack(track, this.localStream);
-                }
-            });
-        }
-
-        if (!this.accessToken) {
-            console.error('No access token provided for WebSocket connection');
-            this.callStateSubject.next('failed');
-            throw new Error('No authentication token available');
-        }
-
-        // Ensure WebSocket is connected
-        if (!this.websocket || this.websocket.readyState !== WebSocket.OPEN) {
-            console.log('WebSocket not connected, connecting now...');
-            await this.connectWebSocketAsync(bookingId, this.accessToken);
-        }
-        
-        console.log('WebSocket connected for accepting call');
-        this.callStateSubject.next('connecting');
-        
-        // Send a message to signal that the counsellor's peer connection is ready
-        this.sendMessage({
-            type: 'counsellor_ready',
-            booking_id: this.bookingId
-        });
-        
-        console.log('Counsellor ready message sent, waiting for offer...');
-        
-    } catch (error) {
-        console.error('Error accepting incoming call:', error);
-        this.callStateSubject.next('failed');
-        throw error;
+  async acceptIncomingCall(bookingId: number, constraints: MediaConstraints = { audio: true }, accessToken?: string, sessionDuration?: number): Promise<void> {
+    if (this.isConnecting) {
+      console.warn('Already processing call');
+      return;
     }
-}
 
-  // Initialize for counsellor to listen for incoming calls
+    try {
+      this.isConnecting = true;
+      if (sessionDuration) {
+        this.startCallTimer(sessionDuration);
+      }
+      
+      this.bookingId = bookingId;
+      this.accessToken = accessToken || localStorage.getItem('access_token') || null;
+      this.currentMediaConstraints = constraints;
+      this.reconnectAttempts = 0;
+      this.isInitiator = false;
+      
+      this.callStateSubject.next('accepting');
+      
+      if (this.peerConnection) {
+        this.peerConnection.close();
+      }
+      this.setupPeerConnection();
+      
+      // Mobile-optimized audio constraints
+      const mobileConstraints = {
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 16000,
+          channelCount: 1
+        }
+      };
+      
+      this.localStream = await navigator.mediaDevices.getUserMedia(mobileConstraints);
+      this.localStreamSubject.next(this.localStream);
+
+      if (this.localStream && this.peerConnection) {
+        this.localStream.getTracks().forEach(track => {
+          if (this.peerConnection && this.localStream) {
+            this.peerConnection.addTrack(track, this.localStream);
+          }
+        });
+      }
+
+      if (!this.websocket || this.websocket.readyState !== WebSocket.OPEN) {
+        await this.connectWebSocketAsync(bookingId, this.accessToken!);
+      }
+      
+      this.callStateSubject.next('connecting');
+      
+      // Immediate ready signal
+      this.sendMessage({
+        type: 'counsellor_ready',
+        booking_id: this.bookingId
+      });
+      
+    } catch (error) {
+      console.error('Error accepting call:', error);
+      this.callStateSubject.next('failed');
+      this.isConnecting = false;
+      throw error;
+    }
+  }
+
   async initializeCounsellorCall(bookingId: number, accessToken?: string): Promise<void> {
     try {
       this.bookingId = bookingId;
       this.accessToken = accessToken || localStorage.getItem('access_token') || null;
       this.isInitiator = false;
       
-      console.log('Initializing counsellor call listener for booking:', bookingId);
-      
       if (!this.accessToken) {
         throw new Error('No authentication token available');
       }
 
-      // Connect to WebSocket to listen for incoming calls
       await this.connectWebSocketAsync(bookingId, this.accessToken);
-      console.log('Counsellor WebSocket initialized for booking:', bookingId);
       
     } catch (error) {
       console.error('Error initializing counsellor call:', error);
@@ -348,16 +342,13 @@ export class WebrtcService {
       const wsUrl = effectiveToken
         ? `${environment.wsUrl}/ws/call/${bookingId}/?token=${effectiveToken}`
         : `${environment.wsUrl}/ws/call/${bookingId}/`;
-      console.log(`Connecting to WebSocket URL: ${wsUrl}`);
 
       if (this.websocket && this.websocket.readyState === WebSocket.OPEN) {
-        console.log('WebSocket already connected');
         resolve();
         return;
       }
 
       if (this.websocket) {
-        console.log('Closing existing WebSocket connection');
         this.websocket.close();
       }
       
@@ -365,21 +356,18 @@ export class WebrtcService {
         this.websocket = new WebSocket(wsUrl);
         this.bookingId = bookingId;
       } catch (error) {
-        console.error('Failed to create WebSocket:', error);
         this.callStateSubject.next('failed');
         reject(error);
         return;
       }
 
       const timeout = setTimeout(() => {
-        console.error(`WebSocket connection timeout for ${wsUrl}`);
         this.callStateSubject.next('failed');
-        reject(new Error(`WebSocket connection timeout for ${wsUrl}`));
-      }, 5000);
+        reject(new Error('WebSocket connection timeout'));
+      }, 3000); // Reduced timeout for mobile
 
       this.websocket.onopen = () => {
         clearTimeout(timeout);
-        console.log('WebSocket connected successfully for booking', bookingId);
         this.reconnectAttempts = 0;
         resolve();
       };
@@ -387,26 +375,21 @@ export class WebrtcService {
       this.websocket.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
-          console.log('WebSocket message received for booking', bookingId, ':', message);
           this.messageSubject.next(message);
           this.handleMessage(message);
         } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
+          console.error('Error parsing message:', error);
         }
       };
 
       this.websocket.onclose = (event) => {
-        console.log(`WebSocket disconnected for booking ${bookingId}: code=${event.code}, reason=${event.reason}`);
         if (this.callStateSubject.value !== 'ended' && this.reconnectAttempts < this.maxReconnectAttempts) {
           this.attemptReconnection();
-        } else if (this.callStateSubject.value !== 'ended') {
-          this.callStateSubject.next('disconnected');
         }
       };
 
       this.websocket.onerror = (error) => {
         clearTimeout(timeout);
-        console.error(`WebSocket error for ${wsUrl}:`, error);
         this.callStateSubject.next('failed');
         reject(error);
       };
@@ -419,166 +402,131 @@ export class WebrtcService {
 
   private sendMessage(message: any) {
     if (this.websocket && this.websocket.readyState === WebSocket.OPEN) {
-      console.log('Sending WebSocket message:', message);
       this.websocket.send(JSON.stringify(message));
-    } else {
-      console.warn('WebSocket not ready, message not sent:', message);
-      if (this.websocket?.readyState === WebSocket.CONNECTING) {
-        setTimeout(() => this.sendMessage(message), 100);
-      }
+    } else if (this.websocket?.readyState === WebSocket.CONNECTING) {
+      // Queue message for immediate send when connected
+      setTimeout(() => this.sendMessage(message), 50);
     }
   }
 
   handleMessage(message: any) {
-    console.log('Handling message:', message);
-    
     switch (message.type) {
-        case 'call_initiated':
-            // Counsellor receives this when user starts a call
-            console.log('Call initiated by user, setting state to incoming');
-            this.callStateSubject.next('incoming');
-            this.messageSubject.next(message);
-            break;
-            
-        case 'call_accepted':
-            // This message is now primarily for the counsellor's UI.
-            // The user's client will wait for 'counsellor_ready'.
-            console.log('Call accepted message received, user waiting for counsellor to be ready.');
-            this.messageSubject.next(message);
-            break;
-            
-        case 'counsellor_ready':
-            // User receives this when the counsellor's peer connection is set up.
-            // This is the reliable trigger to create the offer.
-            console.log('Counsellor is ready, user will now create offer.');
-            this.callStateSubject.next('connecting');
-
-            if (this.isInitiator) {
-                console.log('User is initiator, creating offer...');
-                // No delay needed
-                this.createOffer();
-            }
-            break;
-            
-        case 'offer':
-            console.log('Received offer, handling...');
-            this.handleOffer(message);
-            break;
-            
-        case 'answer':
-            console.log('Received answer, handling...');
-            this.handleAnswer(message);
-            break;
-            
-        case 'ice-candidate':
-            console.log('Received ICE candidate, handling...');
-            this.handleIceCandidate(message);
-            break;
-            
-        case 'call-ended':
-        case 'call_ended':
-            console.log('Call ended message received');
-            this.stopRingingSound();
-            this.endCall();
-            break;
-            
-        case 'call-rejected':
-        case 'call_rejected':
-            console.log('Call rejected message received');
-            this.stopRingingSound();
-            this.callStateSubject.next('ended');
-            this.messageSubject.next(message);
-            break;
-            
-        case 'media-toggle':
-            this.handleMediaToggle(message);
-            break;
-            
-        default:
-            console.log('Unknown message type:', message.type);
-            this.messageSubject.next(message);
+      case 'call_initiated':
+        this.callStateSubject.next('incoming');
+        this.messageSubject.next(message);
+        break;
+        
+      case 'call_accepted':
+        this.messageSubject.next(message);
+        break;
+        
+      case 'counsellor_ready':
+        this.callStateSubject.next('connecting');
+        if (this.isInitiator && !this.offerInProgress) {
+          this.createOffer();
+        }
+        break;
+        
+      case 'offer':
+        this.handleOffer(message);
+        break;
+        
+      case 'answer':
+        this.handleAnswer(message);
+        break;
+        
+      case 'ice-candidate':
+        this.handleIceCandidate(message);
+        break;
+        
+      case 'call-ended':
+      case 'call_ended':
+        this.stopRingingSound();
+        this.endCall();
+        break;
+        
+      case 'call-rejected':
+      case 'call_rejected':
+        this.stopRingingSound();
+        this.callStateSubject.next('ended');
+        this.messageSubject.next(message);
+        break;
+        
+      default:
+        this.messageSubject.next(message);
     }
-}
+  }
 
   private startCallTimer(durationInMinutes: number) {
     if (this.callTimer) {
-        clearTimeout(this.callTimer);
+      clearTimeout(this.callTimer);
     }
     const durationInMs = durationInMinutes * 60 * 1000;
-    console.log(`Call will automatically end in ${durationInMinutes} minutes.`);
     this.callTimer = setTimeout(() => {
-        console.log(`Session duration of ${durationInMinutes} minutes ended. Ending call.`);
-        this.endCall();
+      this.endCall();
     }, durationInMs);
   }
 
-
   private async handleOffer(message: any) {
-    try {
-        console.log('Handling offer:', message.offer);
-        
-        if (!this.ensurePeerConnection()) {
-            throw new Error('Peer connection not ready for offer');
-        }
-        
-        // Set remote description
-        console.log('Setting remote description with offer...');
-        await this.peerConnection!.setRemoteDescription(new RTCSessionDescription(message.offer));
-        this.processIceCandidateQueue();
-        console.log('Remote description set successfully');
-        
-        // Ensure we have local stream and add tracks if not already added
-        if (!this.localStream) {
-            console.log('No local stream, getting user media...');
-            this.localStream = await navigator.mediaDevices.getUserMedia(this.currentMediaConstraints);
-            this.localStreamSubject.next(this.localStream);
-            
-            this.localStream.getTracks().forEach(track => {
-                if (this.peerConnection && this.localStream && !this.peerConnection.getSenders().some(sender => sender.track === track)) {
-                    console.log('Adding track for answer:', track.kind);
-                    this.peerConnection.addTrack(track, this.localStream);
-                }
-            });
-        } else {
-            // Ensure all local tracks are added to the peer connection
-            this.localStream.getTracks().forEach(track => {
-                if (this.peerConnection && !this.peerConnection.getSenders().some(sender => sender.track === track)) {
-                    console.log('Adding existing local track to peer connection:', track.kind);
-                    this.peerConnection.addTrack(track, this.localStream!);
-                }
-            });
-        }
-        
-        // Create and send answer
-        console.log('Creating answer...');
-        const answer = await this.peerConnection!.createAnswer();
-        console.log('Answer created, setting local description...');
-        await this.peerConnection!.setLocalDescription(answer);
-        
-        console.log('Sending answer...');
-        this.sendMessage({
-            type: 'answer',
-            answer: answer,
-            booking_id: this.bookingId
-        });
-        
-        console.log('Answer sent successfully');
-        
-    } catch (error) {
-        console.error('Error handling offer:', error);
-        this.callStateSubject.next('failed');
+    if (this.answerInProgress) {
+      console.warn('Answer already in progress');
+      return;
     }
-}
+
+    try {
+      this.answerInProgress = true;
+      
+      if (!this.ensurePeerConnection()) {
+        throw new Error('Peer connection not ready');
+      }
+      
+      await this.peerConnection!.setRemoteDescription(new RTCSessionDescription(message.offer));
+      this.processIceCandidateQueue();
+      
+      if (!this.localStream) {
+        const mobileConstraints = {
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            sampleRate: 16000,
+            channelCount: 1
+          }
+        };
+        this.localStream = await navigator.mediaDevices.getUserMedia(mobileConstraints);
+        this.localStreamSubject.next(this.localStream);
+        
+        this.localStream.getTracks().forEach(track => {
+          if (this.peerConnection && this.localStream) {
+            this.peerConnection.addTrack(track, this.localStream);
+          }
+        });
+      }
+      
+      const answer = await this.peerConnection!.createAnswer();
+      await this.peerConnection!.setLocalDescription(answer);
+      
+      this.sendMessage({
+        type: 'answer',
+        answer: answer,
+        booking_id: this.bookingId
+      });
+      
+    } catch (error) {
+      console.error('Error handling offer:', error);
+      this.callStateSubject.next('failed');
+    } finally {
+      this.answerInProgress = false;
+    }
+  }
 
   private async handleAnswer(message: any) {
     try {
-      console.log('Handling answer:', message.answer);
       this.stopRingingSound();
       
       if (this.ensurePeerConnection()) {
         await this.peerConnection!.setRemoteDescription(new RTCSessionDescription(message.answer));
         this.processIceCandidateQueue();
-        console.log('Answer processed successfully');
       }
     } catch (error) {
       console.error('Error handling answer:', error);
@@ -588,13 +536,9 @@ export class WebrtcService {
 
   private async handleIceCandidate(message: any) {
     try {
-      console.log('Handling ICE candidate:', message.candidate);
-      
       if (this.peerConnection && this.peerConnection.remoteDescription) {
         await this.peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate));
-        console.log('ICE candidate added successfully');
       } else {
-        console.warn('Cannot add ICE candidate - no remote description, adding to queue');
         this.iceCandidateQueue.push(message.candidate);
       }
     } catch (error) {
@@ -608,7 +552,6 @@ export class WebrtcService {
       if (candidate) {
         try {
           await this.peerConnection?.addIceCandidate(new RTCIceCandidate(candidate));
-          console.log('Processed queued ICE candidate');
         } catch (error) {
           console.error('Error processing queued ICE candidate:', error);
         }
@@ -616,43 +559,40 @@ export class WebrtcService {
     }
   }
 
-  private handleMediaToggle(message: any) {
-    console.log('Remote peer toggled media:', message);
-    this.messageSubject.next(message);
+  async createOffer(): Promise<void> {
+    if (this.offerInProgress) {
+      console.warn('Offer already in progress');
+      return;
+    }
+
+    try {
+      this.offerInProgress = true;
+      
+      if (!this.ensurePeerConnection()) {
+        throw new Error('Peer connection not ready');
+      }
+      
+      const offer = await this.peerConnection!.createOffer({
+        offerToReceiveAudio: true
+      });
+      
+      await this.peerConnection!.setLocalDescription(offer);
+      
+      this.sendMessage({
+        type: 'offer',
+        offer: offer,
+        booking_id: this.bookingId
+      });
+      
+    } catch (error) {
+      console.error('Error creating offer:', error);
+      this.callStateSubject.next('failed');
+    } finally {
+      this.offerInProgress = false;
+    }
   }
 
-  async createOffer(): Promise<void> {
-    try {
-        if (!this.ensurePeerConnection()) {
-            throw new Error('Peer connection not ready for creating offer');
-        }
-        
-        console.log('Creating offer with peer connection state:', this.peerConnection!.signalingState);
-        const offer = await this.peerConnection!.createOffer({
-            offerToReceiveAudio: true,
-            offerToReceiveVideo: this.currentMediaConstraints.video
-        });
-        
-        console.log('Offer created, setting local description...');
-        await this.peerConnection!.setLocalDescription(offer);
-        
-        console.log('Sending offer...');
-        this.sendMessage({
-            type: 'offer',
-            offer: offer,
-            booking_id: this.bookingId
-        });
-        
-        console.log('Offer sent successfully');
-        
-    } catch (error) {
-        console.error('Error creating offer:', error);
-        this.callStateSubject.next('failed');
-    }
-}
-
   rejectCall(): void {
-    console.log('Rejecting call...');
     this.stopRingingSound();
     
     this.sendMessage({
@@ -669,7 +609,6 @@ export class WebrtcService {
       const audioTrack = this.localStream.getAudioTracks()[0];
       if (audioTrack) {
         audioTrack.enabled = !audioTrack.enabled;
-        console.log('Audio toggled:', audioTrack.enabled);
         
         this.sendMessage({
           type: 'media-toggle',
@@ -684,93 +623,14 @@ export class WebrtcService {
     return false;
   }
 
-  async toggleVideo(): Promise<boolean> {
-    if (this.localStream) {
-      const videoTrack = this.localStream.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !videoTrack.enabled;
-        console.log('Video toggled:', videoTrack.enabled);
-        
-        this.sendMessage({
-          type: 'media-toggle',
-          mediaType: 'video',
-          enabled: videoTrack.enabled,
-          booking_id: this.bookingId
-        });
-        
-        return videoTrack.enabled;
-      }
-    }
-    return false;
-  }
-
-  async enableVideo(): Promise<boolean> {
-    try {
-      if (this.localStream && this.localStream.getVideoTracks().length > 0) {
-        const videoTrack = this.localStream.getVideoTracks()[0];
-        videoTrack.enabled = true;
-        console.log('Video enabled:', videoTrack.enabled);
-        
-        this.sendMessage({
-          type: 'media-toggle',
-          mediaType: 'video',
-          enabled: videoTrack.enabled,
-          booking_id: this.bookingId
-        });
-        
-        return true;
-      } else {
-        // Need to get new stream with video
-        this.currentMediaConstraints.video = true;
-        const newStream = await navigator.mediaDevices.getUserMedia(this.currentMediaConstraints);
-        
-        if (this.localStream) {
-          this.localStream.getTracks().forEach(track => track.stop());
-        }
-        
-        this.localStream = newStream;
-        this.localStreamSubject.next(this.localStream);
-        
-        if (this.ensurePeerConnection() && this.localStream) {
-          // Replace tracks in peer connection
-          this.localStream.getTracks().forEach(track => {
-            if (this.peerConnection && this.localStream) {
-              console.log('Adding new track to peer connection:', track.kind, track.enabled);
-              const sender = this.peerConnection.getSenders().find(s => 
-                s.track && s.track.kind === track.kind);
-              if (sender) {
-                sender.replaceTrack(track);
-              } else {
-                this.peerConnection.addTrack(track, this.localStream);
-              }
-            }
-          });
-        }
-        
-        this.sendMessage({
-          type: 'media-toggle',
-          mediaType: 'video',
-          enabled: true,
-          booking_id: this.bookingId
-        });
-        
-        return true;
-      }
-    } catch (error) {
-      console.error('Error enabling video:', error);
-      return false;
-    }
-  }
-
   endCall(): void {
-    console.log('Ending call...');
     this.stopRingingSound();
+    this.isConnecting = false;
     
     let actualDuration: number | undefined;
     if (this.callStartTime) {
-        const durationInMs = Date.now() - this.callStartTime;
-        actualDuration = Math.round(durationInMs / (1000 * 60)); // Duration in minutes
-        console.log(`Actual call duration: ${actualDuration} minutes`);
+      const durationInMs = Date.now() - this.callStartTime;
+      actualDuration = Math.round(durationInMs / (1000 * 60));
     }
 
     if (this.websocket && this.websocket.readyState === WebSocket.OPEN) {
@@ -778,22 +638,21 @@ export class WebrtcService {
         type: 'call_ended',
         booking_id: this.bookingId,
         user_type: this.isInitiator ? 'user' : 'counsellor',
-        actual_duration: actualDuration // Include actual_duration in WebSocket message
+        actual_duration: actualDuration
       });
     }
 
-    // Send actual_duration to backend /dashboard/end_call/
     if (this.bookingId && actualDuration !== undefined) {
-        const headers = new HttpHeaders({
-            'Authorization': `Bearer ${localStorage.getItem('access_token') ?? ''}`
-        });
-        this.http.post(`${environment.apiUrl}/api/dashboard/end_call/`, {
-            booking_id: this.bookingId,
-            actual_duration: actualDuration
-        }, { headers }).subscribe({
-            next: (response) => console.log('End call API success:', response),
-            error: (error) => console.error('End call API error:', error)
-        });
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${localStorage.getItem('access_token') ?? ''}`
+      });
+      this.http.post(`${environment.apiUrl}/api/dashboard/end_call/`, {
+        booking_id: this.bookingId,
+        actual_duration: actualDuration
+      }, { headers }).subscribe({
+        next: (response) => console.log('End call API success:', response),
+        error: (error) => console.error('End call API error:', error)
+      });
     }
 
     this.cleanup();
@@ -801,15 +660,13 @@ export class WebrtcService {
 
   private cleanup(): void {
     if (this.callTimer) {
-        clearTimeout(this.callTimer);
-        this.callTimer = null;
+      clearTimeout(this.callTimer);
+      this.callTimer = null;
     }
-    console.log('Cleaning up WebRTC resources...');
 
     if (this.localStream) {
       this.localStream.getTracks().forEach(track => {
         track.stop();
-        console.log('Stopped track:', track.kind);
       });
       this.localStream = null;
       this.localStreamSubject.next(null);
@@ -834,6 +691,9 @@ export class WebrtcService {
     this.accessToken = null;
     this.reconnectAttempts = 0;
     this.isInitiator = false;
+    this.isConnecting = false;
+    this.offerInProgress = false;
+    this.answerInProgress = false;
     this.callStateSubject.next('ended');
   }
 
@@ -870,21 +730,6 @@ export class WebrtcService {
     if (this.localStream) {
       const audioTrack = this.localStream.getAudioTracks()[0];
       return audioTrack ? audioTrack.enabled : false;
-    }
-    return false;
-  }
-
-  isVideoEnabled(): boolean {
-    if (this.localStream) {
-      const videoTrack = this.localStream.getVideoTracks()[0];
-      return videoTrack ? videoTrack.enabled : false;
-    }
-    return false;
-  }
-
-  hasVideoTrack(): boolean {
-    if (this.localStream) {
-      return this.localStream.getVideoTracks().length > 0;
     }
     return false;
   }

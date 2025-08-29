@@ -346,7 +346,7 @@ export class CheckoutComponent implements OnInit {
 
             if (this.webrtcService) {
               try {
-                await this.webrtcService.startCall(bookingId ?? 0, { audio: true, video: false }, accessToken, this.userExtraMinutes ?? this.sessionDuration ?? undefined);
+                await this.webrtcService.startCall(bookingId ?? 0, { audio: true }, accessToken, this.userExtraMinutes ?? this.sessionDuration ?? undefined);
                 
                 const messageSub = this.webrtcService.getMessageObservable().subscribe((message: any) => {
                   console.log('Received WebRTC message in checkout:', message);

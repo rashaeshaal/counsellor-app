@@ -200,7 +200,6 @@
 }
 
 .profile-image-container {
-  position: relative;
 }
 
 .profile-image-enhanced {
@@ -223,9 +222,6 @@
 }
 
 .edit-btn-enhanced {
-  position: absolute;
-  top: -8px;
-  right: -8px;
   width: 32px;
   height: 32px;
   background: linear-gradient(45deg, #14b8a6, #0e9588);
@@ -238,7 +234,6 @@
   justify-content: center;
   box-shadow: 0 3px 10px rgba(20, 184, 166, 0.4);
   transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  z-index: 2;
 }
 
 .edit-btn-enhanced:hover {

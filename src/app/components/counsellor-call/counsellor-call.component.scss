@@ -1,230 +1,289 @@
 .call-container {
-  --background: var(--ion-background-color, #f4f5f8);
+  --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --color: white;
+  padding: 20px;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  height: 100%;
-  padding: 16px;
-
-  &.connecting, &.incoming {
-    background: linear-gradient(135deg, #e0e0e0, #f4f5f8);
-  }
-
-  &.connected {
-    background: var(--ion-background-color, #fff);
-  }
 }
 
 .call-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-  .client-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
-    .client-avatar {
-      --size: 48px;
-    }
-
-    .call-details {
-      h2 {
-        margin: 0;
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: var(--ion-text-color, #000);
-      }
-
-      .call-status {
-        margin: 4px 0 0;
-        font-size: 0.9rem;
-        color: var(--ion-color-medium, #666);
-
-        &.connected {
-          color: var(--ion-color-success, #2dd36f);
-        }
-        &.disconnected, &.failed, &.ended {
-          color: var(--ion-color-danger, #eb445a);
-        }
-        &.incoming {
-          color: var(--ion-color-primary, #3880ff);
-        }
-      }
-    }
-  }
-
-  .call-timer {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 1rem;
-    color: var(--ion-text-color, #000);
-
-    ion-icon {
-      font-size: 1.2rem;
-    }
-  }
+  text-align: center;
+  margin-bottom: 30px;
 }
 
-.incoming-call-notification, .audio-visualizer {
+.client-info h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: white;
+}
+
+.call-status {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.call-timer {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex-grow: 1;
-  text-align: center;
-
-  .wave-container {
-    display: flex;
-    align-items: flex-end;
-    gap: 4px;
-    height: 60px;
-
-    .wave {
-      width: 8px;
-      background: var(--ion-color-primary, #3880ff);
-      border-radius: 4px;
-      animation: wave 1.2s ease-in-out infinite;
-
-      &.active {
-        background: var(--ion-color-success, #2dd36f);
-      }
-
-      @for $i from 1 through 5 {
-        &.wave#{$i} {
-          height: calc(10px + #{$i * 8}px);
-          animation-delay: calc(#{$i * 0.1}s);
-        }
-      }
-    }
-  }
-
-  .incoming-call-text, .audio-status {
-    margin-top: 16px;
-    font-size: 1.1rem;
-    color: var(--ion-text-color, #000);
-  }
-
-  .incoming-controls {
-    display: flex;
-    gap: 16px;
-    margin-top: 16px;
-
-    ion-button {
-      --border-radius: 8px;
-      --padding-start: 24px;
-      --padding-end: 24px;
-      font-size: 1rem;
-    }
-  }
+  gap: 8px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-top: 15px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
 }
+
+/* Incoming Call Animation */
+.incoming-call-notification {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.wave-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  height: 100px;
+  margin-bottom: 30px;
+}
+
+.wave {
+  width: 6px;
+  height: 20px;
+  background: white;
+  margin: 0 2px;
+  border-radius: 3px;
+  animation: wave 1.5s ease-in-out infinite;
+}
+
+.wave:nth-child(1) { animation-delay: 0s; }
+.wave:nth-child(2) { animation-delay: 0.1s; }
+.wave:nth-child(3) { animation-delay: 0.2s; }
+.wave:nth-child(4) { animation-delay: 0.3s; }
+.wave:nth-child(5) { animation-delay: 0.4s; }
 
 @keyframes wave {
-  0%, 100% { transform: scaleY(1); }
-  50% { transform: scaleY(1.5); }
+  0%, 40%, 100% { transform: scaleY(0.4); opacity: 0.7; }
+  20% { transform: scaleY(1.2); opacity: 1; }
 }
 
-.video-container {
-  flex-grow: 1;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
+.incoming-call-text {
+  font-size: 1.3rem;
+  font-weight: 500;
+  margin-bottom: 40px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Mobile-Optimized Button Styles */
+.mobile-optimized-btn {
+  --border-radius: 50px;
+  --padding-start: 20px;
+  --padding-end: 20px;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+  height: 60px;
+  min-width: 140px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0.5px;
   position: relative;
-
-  &.hidden {
-    display: none;
-  }
-
-  .video-wrapper {
-    position: relative;
-    width: 100%;
-    max-width: 640px;
-    aspect-ratio: 16 / 9;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    background: #000;
-
-    video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .video-label {
-      position: absolute;
-      bottom: 8px;
-      left: 8px;
-      background: rgba(0, 0, 0, 0.7);
-      color: #fff;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 0.9rem;
-    }
-
-    &.local-video-wrapper {
-      position: absolute;
-      bottom: 16px;
-      right: 16px;
-      width: 160px;
-      height: 90px;
-      z-index: 10;
-    }
-  }
+  overflow: hidden;
+  transition: all 0.2s ease;
+  /* Improve touch targets */
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
+.mobile-optimized-btn:active {
+  transform: scale(0.95);
+}
+
+.mobile-optimized-btn:disabled {
+  opacity: 0.6;
+  transform: none;
+}
+
+/* Call Controls Layout */
 .call-controls {
   display: flex;
   justify-content: center;
-  gap: 12px;
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  gap: 20px;
+  padding: 20px;
+  margin-top: auto;
+}
 
+.incoming-controls {
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.active-controls {
+  flex-direction: row;
+  justify-content: space-evenly;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+/* Button-specific styles */
+.accept-btn {
+  --background: #28a745;
+  --background-activated: #218838;
+  --background-hover: #218838;
+  --color: white;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.reject-btn {
+  --background: #dc3545;
+  --background-activated: #c82333;
+  --background-hover: #c82333;
+  --color: white;
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.end-call-btn {
+  --background: #dc3545;
+  --background-activated: #c82333;
+  --background-hover: #c82333;
+  --color: white;
+  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  min-width: 70px;
+  box-shadow: 0 4px 20px rgba(220, 53, 69, 0.4);
+}
+
+.end-call-icon {
+  transform: rotate(135deg);
+  font-size: 1.5rem;
+}
+
+.control-btn {
+  --background: rgba(255, 255, 255, 0.2);
+  --background-activated: rgba(255, 255, 255, 0.3);
+  --background-hover: rgba(255, 255, 255, 0.3);
+  --color: white;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  min-width: 60px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Audio Visualizer */
+.audio-visualizer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.audio-status {
+  font-size: 1.1rem;
+  opacity: 0.8;
+  margin-top: 20px;
+}
+
+/* Connection Status */
+.connection-status {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.connection-status ion-spinner {
+  --color: white;
+  transform: scale(1.5);
+  margin-bottom: 20px;
+}
+
+.connection-status p {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .call-container {
+    padding: 15px;
+  }
+  
+  .mobile-optimized-btn {
+    height: 55px;
+    min-width: 120px;
+    font-size: 1rem;
+  }
+  
+  .end-call-btn {
+    width: 65px;
+    height: 65px;
+    min-width: 65px;
+  }
+  
   .control-btn {
-    --border-radius: 50%;
-    --padding-start: 16px;
-    --padding-end: 16px;
-    width: 56px;
-    height: 56px;
-
-    ion-icon {
-      font-size: 1.5rem;
-    }
-
-    &.end-call-btn {
-      --background: var(--ion-color-danger, #eb445a);
-    }
+    width: 55px;
+    height: 55px;
+    min-width: 55px;
+  }
+  
+  .incoming-controls {
+    width: 100%;
+  }
+  
+  .accept-btn, .reject-btn {
+    width: 80%;
+    max-width: 250px;
   }
 }
 
-.connection-status {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex-grow: 1;
-  text-align: center;
-
-  ion-spinner {
-    --color: var(--ion-color-primary, #3880ff);
-    margin-bottom: 8px;
+/* Enhanced touch feedback */
+@media (hover: none) {
+  .mobile-optimized-btn:hover {
+    --background: var(--background-activated);
   }
+}
 
-  p {
-    font-size: 1.1rem;
-    color: var(--ion-text-color, #000);
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .wave, .incoming-call-text {
+    animation: none;
+  }
+  
+  .mobile-optimized-btn {
+    transition: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .mobile-optimized-btn {
+    border: 2px solid white;
+  }
+  
+  .call-status, .audio-status {
+    color: white;
   }
 }

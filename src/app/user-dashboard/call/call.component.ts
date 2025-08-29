@@ -1,24 +1,22 @@
-
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { WebrtcService } from 'src/app/webrtc.service';
 import { environment } from 'src/environments/environment';
-import { MiniCallService } from 'src/app/mini-call.service'; // Import MiniCallService
-import { CommonModule } from '@angular/common'; // Import CommonModule
-import { IonicModule } from '@ionic/angular'; // Import IonicModule
+import { MiniCallService } from 'src/app/mini-call.service';
+import { CommonModule } from '@angular/common';
+import { IonicModule } from '@ionic/angular';
 
 @Component({
   selector: 'app-call',
   templateUrl: './call.component.html',
   styleUrls: ['./call.component.scss'],
-  standalone: true, // Change to standalone: true
-  imports: [CommonModule, IonicModule] // Add imports for standalone component
+  standalone: true,
+  imports: [CommonModule, IonicModule]
 })
 export class CallComponent implements OnInit, OnDestroy, AfterViewInit {
-
   bookingId?: number;
   counsellor: any;
   callStateText: string = 'Connecting...';
@@ -31,18 +29,15 @@ export class CallComponent implements OnInit, OnDestroy, AfterViewInit {
   isConnecting: boolean = false;
   isConnected: boolean = false;
   callDuration: string = '00:00';
-  showVideoElements: boolean = false;
   isMuted: boolean = false;
   isAudioEnabled: boolean = true;
-  isVideoEnabled: boolean = false;
-
-  @ViewChild('localVideo') localVideo!: ElementRef<HTMLVideoElement>;
-  @ViewChild('remoteVideo') remoteVideo!: ElementRef<HTMLVideoElement>;
+  
   @ViewChild('localAudio') localAudio!: ElementRef<HTMLAudioElement>;
   @ViewChild('remoteAudio') remoteAudio!: ElementRef<HTMLAudioElement>;
 
   private startTime?: number;
   private timerInterval?: any;
+  private isProcessingAction = false;
 
   constructor(
     private router: Router,
@@ -51,17 +46,17 @@ export class CallComponent implements OnInit, OnDestroy, AfterViewInit {
     private toastCtrl: ToastController,
     private http: HttpClient,
     private miniCallService: MiniCallService,
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone
   ) {}
 
   ngOnInit() {
-    this.miniCallService.hideMiniUi(); // Hide mini UI when full call component is active
+    this.miniCallService.hideMiniUi();
     this.bookingId = history.state.bookingId;
     this.counsellor = history.state.counsellor;
 
-    console.log('CallComponent initialized with:', { bookingId: this.bookingId, counsellor: this.counsellor });
-
     if (!this.bookingId || !this.counsellor) {
-      console.error('Missing booking ID or counsellor data, redirecting to dashboard');
+      console.error('Missing booking ID or counsellor data');
       this.router.navigate(['/user-dashboard']);
       return;
     }
@@ -73,10 +68,10 @@ export class CallComponent implements OnInit, OnDestroy, AfterViewInit {
     this.isConnecting = true;
 
     this.setupSubscriptions();
+    this.initiateCall();
   }
 
   ngAfterViewInit() {
-    // Setup media elements after view initialization
     setTimeout(() => {
       this.initializeStreams();
     }, 100);
@@ -87,75 +82,99 @@ export class CallComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscriptions.forEach(sub => sub.unsubscribe());
     this.clearTimer();
     
-    // Check if the call is still active when the component is destroyed
-    // This happens if the user navigates away without explicitly ending the call
     if (['connecting', 'connected', 'ringing'].includes(this.webrtcService.getCurrentCallState())) {
-      // If the call is active, show the mini UI
       this.miniCallService.showMiniUi({
         bookingId: this.bookingId,
         counsellorName: this.counsellorName,
         callState: this.webrtcService.getCurrentCallState()
       });
     } else {
-      // If the call is already ended or failed, ensure mini UI is hidden
       this.miniCallService.hideMiniUi();
     }
   }
 
-  private setupSubscriptions() {
-    // Subscribe to call state changes
-    const callStateSub = this.webrtcService.getCallStateObservable().subscribe((state: string) => {
-      console.log('Call state in CallComponent:', state);
-      this.updateCallState(state);
-      
-      if (state === 'disconnected' || state === 'ended') {
-        this.clearTimer();
-        this.showToast('Call ended', 'warning');
-        setTimeout(() => {
-          if (!this.isDestroyed) {
-            this.router.navigate(['/user-dashboard']);
-          }
-        }, 1500);
-      } else if (state === 'connected') {
-        this.startTimer();
-        this.isRinging = false;
-        this.showToast('Call connected!', 'success');
-      } else if (state === 'failed') {
-        this.showToast('Call failed to connect', 'danger');
-        setTimeout(() => {
-          if (!this.isDestroyed) {
-            this.router.navigate(['/user-dashboard']);
-          }
-        }, 2000);
-      }
-    });
+  private async initiateCall() {
+    if (this.isProcessingAction) return;
+    
+    this.isProcessingAction = true;
+    try {
+      await this.webrtcService.startCall(
+        this.bookingId!,
+        { audio: true },
+        localStorage.getItem('access_token') || undefined,
+        this.counsellor?.session_duration
+      );
+    } catch (error) {
+      console.error('Failed to initiate call:', error);
+      this.showToast('Failed to start call', 'danger');
+      this.isProcessingAction = false;
+      setTimeout(() => {
+        if (!this.isDestroyed) {
+          this.router.navigate(['/user-dashboard']);
+        }
+      }, 2000);
+    }
+  }
 
-    // Subscribe to messages
-    const messageSub = this.webrtcService.getMessageObservable().subscribe((message: any) => {
-      console.log('Received WebRTC message in CallComponent:', message);
-      
-      switch (message.type) {
-        case 'call_accepted':
+  private setupSubscriptions() {
+    const callStateSub = this.webrtcService.getCallStateObservable().subscribe((state: string) => {
+      this.ngZone.run(() => {
+        this.updateCallState(state);
+        
+        if (state === 'disconnected' || state === 'ended') {
+          this.clearTimer();
+          this.isProcessingAction = false;
+          this.showToast('Call ended', 'warning');
+          setTimeout(() => {
+            if (!this.isDestroyed) {
+              this.router.navigate(['/user-dashboard']);
+            }
+          }, 1500);
+        } else if (state === 'connected') {
+          this.startTimer();
           this.isRinging = false;
-          this.callState = 'connecting';
-          this.callStateText = 'Connecting...';
-          this.showToast(`Call accepted by ${message.counsellor_name || 'Counsellor'}`, 'success');
-          break;
-          
-        case 'call_rejected':
-          this.showToast('Call was rejected by the counsellor', 'danger');
+          this.isProcessingAction = false;
+          this.showToast('Call connected!', 'success');
+        } else if (state === 'failed') {
+          this.isProcessingAction = false;
+          this.showToast('Call failed to connect', 'danger');
           setTimeout(() => {
             if (!this.isDestroyed) {
               this.router.navigate(['/user-dashboard']);
             }
           }, 2000);
-          break;
-          
-        case 'call_ended':
-          this.showToast('Call ended by counsellor', 'warning');
-          this.endCall();
-          break;
-      }
+        }
+        this.cdr.detectChanges();
+      });
+    });
+
+    const messageSub = this.webrtcService.getMessageObservable().subscribe((message: any) => {
+      this.ngZone.run(() => {
+        switch (message.type) {
+          case 'call_accepted':
+            this.isRinging = false;
+            this.callState = 'connecting';
+            this.callStateText = 'Connecting...';
+            this.showToast(`Call accepted by ${message.counsellor_name || 'Counsellor'}`, 'success');
+            break;
+            
+          case 'call_rejected':
+            this.isProcessingAction = false;
+            this.showToast('Call was rejected by the counsellor', 'danger');
+            setTimeout(() => {
+              if (!this.isDestroyed) {
+                this.router.navigate(['/user-dashboard']);
+              }
+            }, 2000);
+            break;
+            
+          case 'call_ended':
+            this.showToast('Call ended by counsellor', 'warning');
+            this.endCall();
+            break;
+        }
+        this.cdr.detectChanges();
+      });
     }); 
 
     this.subscriptions.push(callStateSub, messageSub);
@@ -166,7 +185,6 @@ export class CallComponent implements OnInit, OnDestroy, AfterViewInit {
     this.isConnecting = ['connecting', 'initiating', 'ringing'].includes(state);
     this.isConnected = state === 'connected';
     this.callStateText = this.getCallStateText(state);
-    this.showVideoElements = this.isVideoEnabled && this.isConnected;
     
     if (state === 'ringing') {
       this.isRinging = true;
@@ -220,42 +238,32 @@ export class CallComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private async initializeStreams() {
     try {
-      // Subscribe to stream observables for real-time updates
       const localStreamSub = this.webrtcService.getLocalStreamObservable().subscribe((stream: MediaStream | null) => {
-        if (stream && this.localVideo?.nativeElement && this.localAudio?.nativeElement) {
-          this.localVideo.nativeElement.srcObject = stream;
+        if (stream && this.localAudio?.nativeElement) {
           this.localAudio.nativeElement.srcObject = stream;
-          this.localAudio.nativeElement.muted = true; // Prevent feedback
-          this.localVideo.nativeElement.muted = true;
-          this.localAudio.nativeElement.play().catch(e => console.error('Local audio play error:', e));
-          this.localVideo.nativeElement.play().catch(e => console.error('Local video play error:', e));
+          this.localAudio.nativeElement.muted = true;
+          this.localAudio.nativeElement.play().catch(e => console.warn('Local audio play error:', e));
         }
       });
 
       const remoteStreamSub = this.webrtcService.getRemoteStreamObservable().subscribe((stream: MediaStream | null) => {
-        if (stream && this.remoteVideo?.nativeElement && this.remoteAudio?.nativeElement) {
-          this.remoteVideo.nativeElement.srcObject = stream;
+        if (stream && this.remoteAudio?.nativeElement) {
           this.remoteAudio.nativeElement.srcObject = stream;
-          this.remoteAudio.nativeElement.play().catch(e => console.error('Remote audio play error:', e));
-          this.remoteVideo.nativeElement.play().catch(e => console.error('Remote video play error:', e));
+          this.remoteAudio.nativeElement.play().catch(e => console.warn('Remote audio play error:', e));
         }
       });
 
       this.subscriptions.push(localStreamSub, remoteStreamSub);
 
-      // Also set current streams if available
       const localStream = this.webrtcService.getLocalStream();
       const remoteStream = this.webrtcService.getRemoteStream();
 
-      if (localStream && this.localVideo?.nativeElement && this.localAudio?.nativeElement) {
-        this.localVideo.nativeElement.srcObject = localStream;
+      if (localStream && this.localAudio?.nativeElement) {
         this.localAudio.nativeElement.srcObject = localStream;
         this.localAudio.nativeElement.muted = true;
-        this.localVideo.nativeElement.muted = true;
       }
 
-      if (remoteStream && this.remoteVideo?.nativeElement && this.remoteAudio?.nativeElement) {
-        this.remoteVideo.nativeElement.srcObject = remoteStream;
+      if (remoteStream && this.remoteAudio?.nativeElement) {
         this.remoteAudio.nativeElement.srcObject = remoteStream;
       }
     } catch (error) {
@@ -264,45 +272,41 @@ export class CallComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   cancelCall() {
-    console.log('User canceling call');
+    if (this.isProcessingAction) return;
+    
+    this.isProcessingAction = true;
     this.webrtcService.rejectCall();
-    this.router.navigate(['/user-dashboard']);
+    
+    setTimeout(() => {
+      this.router.navigate(['/user-dashboard']);
+    }, 500);
   }
 
-  // call.component.ts
-async endCall() {
-    console.log('User ending call');
+  async endCall() {
+    if (this.isProcessingAction) return;
+    
+    this.isProcessingAction = true;
     this.clearTimer();
-
     this.webrtcService.endCall();
     this.showToast('Call ended', 'warning');
 
-    // Calculate actual duration
     let actualDurationMinutes = 0;
     if (this.startTime) {
       const now = Date.now();
       const diff = now - this.startTime;
-      actualDurationMinutes = Math.floor(diff / 60000); // Convert milliseconds to minutes
+      actualDurationMinutes = Math.floor(diff / 60000);
     }
 
-    // Get booked session duration
     let bookedSessionDuration = 0;
-    if (this.counsellor && this.counsellor.session_duration) { // Assuming session_duration is part of counsellor object
+    if (this.counsellor && this.counsellor.session_duration) {
       bookedSessionDuration = this.counsellor.session_duration;
-    } else {
-      // Fallback: if session_duration is not directly available, you might need to fetch booking details
-      // For now, let's assume a default or log an error
-      console.warn('Session duration not found in counsellor object. Cannot calculate remaining minutes accurately.');
-      // You might want to fetch booking details here if session_duration is critical
     }
 
-    // Calculate remaining minutes
     let remainingMinutes = 0;
     if (bookedSessionDuration > 0 && actualDurationMinutes < bookedSessionDuration) {
       remainingMinutes = bookedSessionDuration - actualDurationMinutes;
     }
 
-    // Send data to backend to credit remaining minutes
     if (remainingMinutes > 0 && this.bookingId) {
       const accessToken = localStorage.getItem('access_token');
       if (accessToken) {
@@ -315,7 +319,6 @@ async endCall() {
           headers: new HttpHeaders({ 'Authorization': `Bearer ${accessToken}` })
         }).subscribe({
           next: (response) => {
-            console.log('Minutes credited successfully:', response);
             this.showToast(`Credited ${remainingMinutes} minutes to wallet.`, 'success');
           },
           error: (error) => {
@@ -327,7 +330,7 @@ async endCall() {
     }
 
     this.router.navigate(['/user-dashboard']);
-}
+  }
 
   async toggleAudio() {
     try {
@@ -340,33 +343,6 @@ async endCall() {
       console.error('Failed to toggle audio:', error);
       this.showToast('Failed to toggle microphone', 'danger');
       return this.isAudioEnabled;
-    }
-  }
-
-  async toggleVideo() {
-    try {
-      this.isVideoEnabled = await this.webrtcService.toggleVideo();
-      this.showVideoElements = this.isVideoEnabled && this.isConnected;
-      const message = this.isVideoEnabled ? 'Camera enabled' : 'Camera disabled';
-      this.showToast(message, 'primary');
-      await this.initializeStreams();
-      return this.isVideoEnabled;
-    } catch (error) {
-      console.error('Failed to toggle video:', error);
-      this.showToast('Failed to toggle camera', 'danger');
-      return this.isVideoEnabled;
-    }
-  }
-
-  async switchToVideoCall() {
-    try {
-      this.isVideoEnabled = await this.webrtcService.enableVideo();
-      this.showVideoElements = this.isConnected;
-      this.showToast('Switched to video call', 'success');
-      await this.initializeStreams();
-    } catch (error) {
-      console.error('Failed to switch to video:', error);
-      this.showToast('Failed to enable video', 'danger');
     }
   }
 
@@ -388,15 +364,11 @@ async endCall() {
     await toast.present();
   }
 
-  // Getter for counsellor name display
   get counsellorName(): string {
     return this.counsellor?.name || this.counsellor?.username || 'Counsellor';
   }
 
-  // get counsellorAvatar(): string {
-  //   return this.counsellor?.profile_picture || this.counsellor?.avatar || 'assets/images/default-avatar.png';
-  // }
-  // onImageError(event: Event) {
-  //   (event.target as HTMLImageElement).src = 'assets/images/default-avatar.png';
-  // }
-} 
+  get isActionInProgress(): boolean {
+    return this.isProcessingAction;
+  }
+}

@@ -1,8 +1,8 @@
+
 <ion-content class="call-container" [ngClass]="{'connecting': isConnecting, 'connected': isConnected, 'ringing': isRinging}">
   <!-- Call Header -->
   <div class="call-header">
     <div class="counsellor-info">
-      
       <div class="call-details">
         <h2>{{ counsellorName }}</h2>
         <p class="call-status" [ngClass]="callState">{{ callStateText }}</p>
@@ -17,7 +17,9 @@
   </div>
 
   <!-- Ringing Indicator -->
-  <div class="ringing-indicator" *ngIf="isRinging && !isConnected && !isConnecting" aria-live="assertive">
+  <div class="ringing-indicator" 
+       *ngIf="isRinging && !isConnected && !isConnecting" 
+       aria-live="assertive">
     <div class="wave-container">
       <div class="wave wave1"></div>
       <div class="wave wave2"></div>
@@ -28,8 +30,8 @@
     <p class="ringing-text">Calling {{ counsellorName }}...</p>
   </div>
 
-  <!-- Audio Visualizer (for audio-only calls) -->
-  <div class="audio-visualizer" *ngIf="!showVideoElements && isConnected" aria-live="polite">
+  <!-- Audio Visualizer -->
+  <div class="audio-visualizer" *ngIf="isConnected" aria-live="polite">
     <div class="wave-container">
       <div class="wave wave1" [class.active]="!isMuted"></div>
       <div class="wave wave2" [class.active]="!isMuted"></div>
@@ -40,73 +42,34 @@
     <p class="audio-status">Audio Call in Progress</p>
   </div>
 
-  <!-- Video Container -->
-  <div class="video-container" [class.hidden]="!showVideoElements">
-    <!-- Remote Video -->
-    <div class="video-wrapper">
-      <video #remoteVideo 
-             class="remote-video"
-             autoplay
-             playsinline
-             aria-label="Counsellor video stream">
-      </video>
-      <span class="video-label">{{ counsellorName }}</span>
-    </div>
-    
-    <!-- Local Video (Picture-in-Picture) -->
-    <div class="video-wrapper local-video-wrapper">
-      <video #localVideo 
-             class="local-video"
-             autoplay
-             playsinline
-             muted
-             aria-label="Your video stream">
-      </video>
-      <span class="video-label">You</span>
-    </div>
-  </div>
-
-  <!-- Audio Elements (hidden but required for WebRTC) -->
+  <!-- Hidden Audio Elements -->
   <audio #localAudio autoplay muted aria-hidden="true"></audio>
   <audio #remoteAudio autoplay aria-hidden="true"></audio>
 
   <!-- Call Controls -->
   <div class="call-controls">
     <!-- Audio Control -->
-    <ion-button fill="solid" 
-                [color]="isAudioEnabled ? 'medium' : 'danger'"
-                (click)="toggleAudio()"
-                class="control-btn"
-                [attr.aria-label]="isAudioEnabled ? 'Mute microphone' : 'Unmute microphone'">
+    <ion-button 
+      fill="solid" 
+      [color]="isAudioEnabled ? 'medium' : 'danger'"
+      (click)="toggleAudio()"
+      class="mobile-optimized-btn control-btn"
+      size="large"
+      [attr.aria-label]="isAudioEnabled ? 'Mute microphone' : 'Unmute microphone'">
       <ion-icon [name]="isAudioEnabled ? 'mic' : 'mic-off'" aria-hidden="true"></ion-icon>
     </ion-button>
 
-    <!-- Video Control -->
-    <ion-button fill="solid" 
-                [color]="isVideoEnabled ? 'medium' : 'dark'"
-                (click)="toggleVideo()"
-                class="control-btn"
-                [attr.aria-label]="isVideoEnabled ? 'Turn off camera' : 'Turn on camera'">
-      <ion-icon [name]="isVideoEnabled ? 'videocam' : 'videocam-off'" aria-hidden="true"></ion-icon>
-    </ion-button>
-
-    <!-- Switch to Video Call (only show in audio mode) -->
-    <ion-button fill="solid" 
-                color="primary"
-                (click)="switchToVideoCall()"
-                class="control-btn"
-                *ngIf="!isVideoEnabled"
-                aria-label="Switch to video call">
-      <ion-icon name="videocam" aria-hidden="true"></ion-icon>
-    </ion-button>
-
     <!-- End/Cancel Call -->
-    <ion-button fill="solid"
-                color="danger"
-                (click)="isRinging ? cancelCall() : endCall()"
-                class="control-btn end-call-btn"
-                [attr.aria-label]="isRinging ? 'Cancel Call' : 'End Call'">
+    <ion-button 
+      fill="solid"
+      color="danger"
+      (click)="isRinging ? cancelCall() : endCall()"
+      [disabled]="isActionInProgress"
+      class="mobile-optimized-btn end-call-btn"
+      size="large"
+      [attr.aria-label]="isRinging ? 'Cancel Call' : 'End Call'">
       <ion-icon name="call" class="end-call-icon" aria-hidden="true"></ion-icon>
+      <ion-spinner *ngIf="isActionInProgress" name="crescent"></ion-spinner>
     </ion-button>
   </div>
 
